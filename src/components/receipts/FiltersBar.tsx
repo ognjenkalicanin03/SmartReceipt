@@ -1,8 +1,8 @@
 import { cn } from "@/lib/utils";
 
 interface Props {
-  timeFilters: readonly string[];
-  categoryFilters: readonly string[];
+  timeFilters: readonly string[] | string[];
+  categoryFilters: readonly string[] | string[];
   activeTime: string;
   activeCategory: string;
   onTimeChange: (v: string) => void;
