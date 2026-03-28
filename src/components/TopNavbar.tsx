@@ -1,5 +1,5 @@
-import { Receipt, LogOut, Settings, FileText } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Receipt } from "lucide-react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -7,9 +7,17 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
+
+const navLinks = [
+  { label: "Home", path: "/home" },
+  { label: "Receipts", path: "/receipts" },
+  { label: "How it works", path: "/how-it-works" },
+];
 
 const TopNavbar = () => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   return (
     <header className="hidden md:flex items-center justify-between px-6 py-3 bg-card border-b border-border">
@@ -19,6 +27,26 @@ const TopNavbar = () => {
         </div>
         <span className="font-bold text-foreground text-lg">SmartReceipt</span>
       </div>
+
+      <nav className="flex items-center gap-1">
+        {navLinks.map((link) => {
+          const isActive = location.pathname === link.path;
+          return (
+            <button
+              key={link.path}
+              onClick={() => navigate(link.path)}
+              className={cn(
+                "px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200",
+                isActive
+                  ? "bg-primary/10 text-primary"
+                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+              )}
+            >
+              {link.label}
+            </button>
+          );
+        })}
+      </nav>
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
@@ -32,10 +60,6 @@ const TopNavbar = () => {
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-48">
-          <DropdownMenuItem onClick={() => navigate("/receipts")} className="cursor-pointer gap-2">
-            <span>🧾</span>
-            <span>My Receipts</span>
-          </DropdownMenuItem>
           <DropdownMenuItem onClick={() => navigate("/profile")} className="cursor-pointer gap-2">
             <span>⚙️</span>
             <span>Profile Settings</span>
