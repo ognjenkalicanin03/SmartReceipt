@@ -8,6 +8,7 @@ import Login from "./pages/Login.tsx";
 import Register from "./pages/Register.tsx";
 import ForgotPassword from "./pages/ForgotPassword.tsx";
 import Home from "./pages/Home.tsx";
+import HowItWorks from "./pages/HowItWorks.tsx";
 import ProfileSettings from "./pages/ProfileSettings.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import AppLayout from "./components/AppLayout.tsx";
@@ -27,6 +28,7 @@ const App = () => (
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route element={<AppLayout />}>
             <Route path="/home" element={<Home />} />
+            <Route path="/how-it-works" element={<HowItWorks />} />
             <Route path="/profile" element={<ProfileSettings />} />
           </Route>
           <Route path="*" element={<NotFound />} />
