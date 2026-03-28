@@ -1,15 +1,18 @@
 export interface ReceiptItem {
   name: string;
   price: number;
+  category?: string;
 }
 
 export interface Receipt {
-  id: number;
+  id: string;
   store: string;
   date: string;
   total: number;
   items: ReceiptItem[];
   categories: string[];
+  image_url?: string | null;
+  created_at?: string;
 }
 
 export interface SpendingCategory {
