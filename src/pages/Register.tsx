@@ -21,21 +21,21 @@ const Register = () => {
     e.preventDefault();
 
     if (password !== confirmPassword) {
-      toast({ title: "Lozinke se ne poklapaju", variant: "destructive" });
+      toast({ title: "Passwords do not match", variant: "destructive" });
       return;
     }
 
     if (password.length < 6) {
-      toast({ title: "Lozinka mora imati najmanje 6 karaktera", variant: "destructive" });
+      toast({ title: "Password must be at least 6 characters", variant: "destructive" });
       return;
     }
 
     setLoading(true);
 
-    // TODO: Replace with Supabase auth
+    // TODO: Replace with real auth
     setTimeout(() => {
       setLoading(false);
-      toast({ title: "Uspešno ste se registrovali!" });
+      toast({ title: "Successfully registered!" });
       navigate("/home");
     }, 1000);
   };
@@ -47,28 +47,28 @@ const Register = () => {
           <Receipt className="w-8 h-8 text-secondary" />
         </div>
         <h1 className="text-2xl font-bold text-primary-foreground tracking-tight">
-          SmartRačun
+          SmartReceipt
         </h1>
         <p className="text-secondary/80 text-sm mt-1">
-          Kreirajte svoj nalog
+          Create your account
         </p>
       </div>
 
       <Card className="rounded-t-3xl rounded-b-none border-0 shadow-2xl flex-1 min-h-[65vh]">
         <CardContent className="px-6 pt-8 pb-8">
           <h2 className="text-xl font-semibold text-foreground mb-6">
-            Registracija
+            Sign Up
           </h2>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="name" className="text-sm font-medium text-muted-foreground">
-                Ime i prezime
+                Full name
               </Label>
               <Input
                 id="name"
                 type="text"
-                placeholder="Marko Marković"
+                placeholder="John Doe"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
@@ -78,12 +78,12 @@ const Register = () => {
 
             <div className="space-y-2">
               <Label htmlFor="email" className="text-sm font-medium text-muted-foreground">
-                Email adresa
+                Email address
               </Label>
               <Input
                 id="email"
                 type="email"
-                placeholder="vas@email.com"
+                placeholder="you@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -93,13 +93,13 @@ const Register = () => {
 
             <div className="space-y-2">
               <Label htmlFor="password" className="text-sm font-medium text-muted-foreground">
-                Lozinka
+                Password
               </Label>
               <div className="relative">
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="Najmanje 6 karaktera"
+                  placeholder="At least 6 characters"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -117,12 +117,12 @@ const Register = () => {
 
             <div className="space-y-2">
               <Label htmlFor="confirmPassword" className="text-sm font-medium text-muted-foreground">
-                Potvrdite lozinku
+                Confirm password
               </Label>
               <Input
                 id="confirmPassword"
                 type="password"
-                placeholder="Ponovite lozinku"
+                placeholder="Repeat password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
@@ -135,17 +135,17 @@ const Register = () => {
               disabled={loading}
               className="w-full h-12 rounded-xl text-base font-semibold bg-primary hover:bg-primary/90 transition-all duration-200"
             >
-              {loading ? "Registracija..." : "Registrujte se"}
+              {loading ? "Signing up..." : "Sign up"}
             </Button>
           </form>
 
           <p className="text-center text-sm text-muted-foreground mt-6">
-            Već imate nalog?{" "}
+            Already have an account?{" "}
             <Link
               to="/"
               className="font-semibold text-accent hover:text-accent/80 transition-colors"
             >
-              Prijavite se
+              Log in
             </Link>
           </p>
         </CardContent>

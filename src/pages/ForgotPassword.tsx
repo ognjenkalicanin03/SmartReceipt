@@ -17,11 +17,11 @@ const ForgotPassword = () => {
     e.preventDefault();
     setLoading(true);
 
-    // TODO: Replace with Supabase auth
+    // TODO: Replace with real auth
     setTimeout(() => {
       setLoading(false);
       setSent(true);
-      toast({ title: "Link za resetovanje lozinke je poslat!" });
+      toast({ title: "Password reset link sent!" });
     }, 1000);
   };
 
@@ -32,10 +32,10 @@ const ForgotPassword = () => {
           <Receipt className="w-8 h-8 text-secondary" />
         </div>
         <h1 className="text-2xl font-bold text-primary-foreground tracking-tight">
-          SmartRačun
+          SmartReceipt
         </h1>
         <p className="text-secondary/80 text-sm mt-1">
-          Resetujte svoju lozinku
+          Reset your password
         </p>
       </div>
 
@@ -46,7 +46,7 @@ const ForgotPassword = () => {
             className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
           >
             <ArrowLeft className="w-4 h-4" />
-            Nazad na prijavu
+            Back to login
           </Link>
 
           {sent ? (
@@ -55,10 +55,10 @@ const ForgotPassword = () => {
                 <Mail className="w-8 h-8 text-secondary" />
               </div>
               <h2 className="text-xl font-semibold text-foreground mb-2">
-                Proverite email
+                Check your email
               </h2>
               <p className="text-sm text-muted-foreground max-w-[280px]">
-                Poslali smo vam link za resetovanje lozinke na{" "}
+                We've sent a password reset link to{" "}
                 <span className="font-medium text-foreground">{email}</span>
               </p>
               <Button
@@ -66,27 +66,27 @@ const ForgotPassword = () => {
                 variant="outline"
                 className="mt-6 rounded-xl"
               >
-                Pošalji ponovo
+                Send again
               </Button>
             </div>
           ) : (
             <>
               <h2 className="text-xl font-semibold text-foreground mb-2">
-                Zaboravljena lozinka
+                Forgot password
               </h2>
               <p className="text-sm text-muted-foreground mb-6">
-                Unesite email adresu i poslaćemo vam link za resetovanje.
+                Enter your email and we'll send you a reset link.
               </p>
 
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div className="space-y-2">
                   <Label htmlFor="email" className="text-sm font-medium text-muted-foreground">
-                    Email adresa
+                    Email address
                   </Label>
                   <Input
                     id="email"
                     type="email"
-                    placeholder="vas@email.com"
+                    placeholder="you@email.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
@@ -99,7 +99,7 @@ const ForgotPassword = () => {
                   disabled={loading}
                   className="w-full h-12 rounded-xl text-base font-semibold bg-primary hover:bg-primary/90 transition-all duration-200"
                 >
-                  {loading ? "Slanje..." : "Pošalji link"}
+                  {loading ? "Sending..." : "Send reset link"}
                 </Button>
               </form>
             </>
