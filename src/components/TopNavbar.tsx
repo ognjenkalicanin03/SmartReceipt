@@ -28,7 +28,7 @@ const TopNavbar = () => {
         <span className="font-bold text-foreground text-lg">SmartReceipt</span>
       </div>
 
-      <nav className="flex items-center gap-1">
+      <nav className="absolute left-1/2 -translate-x-1/2 flex items-center gap-1">
         {navLinks.map((link) => {
           const isActive = location.pathname === link.path;
           return (
