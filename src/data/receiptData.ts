@@ -13,19 +13,13 @@ export const allReceipts: Receipt[] = [
 export const timeFilters = ["Week", "Month", "All time"] as const;
 export const categoryFilters = ["All", "Food", "Drinks", "Snacks", "Hygiene"] as const;
 
+const IMPULSE_CATEGORIES = ["Snacks", "Drinks"];
+
 export function getFilteredReceipts(time: string, category: string): Receipt[] {
   let filtered = allReceipts;
-
-  if (time === "Week") {
-    filtered = filtered.slice(0, 4);
-  } else if (time === "Month") {
-    filtered = filtered.slice(0, 5);
-  }
-
-  if (category !== "All") {
-    filtered = filtered.filter((r) => r.categories.includes(category));
-  }
-
+  if (time === "Week") filtered = filtered.slice(0, 4);
+  else if (time === "Month") filtered = filtered.slice(0, 5);
+  if (category !== "All") filtered = filtered.filter((r) => r.categories.includes(category));
   return filtered;
 }
 
@@ -37,14 +31,10 @@ export function getSpendingData(receipts: Receipt[]): SpendingCategory[] {
     Snacks: "hsl(245, 16%, 18%)",
     Hygiene: "hsl(340, 65%, 65%)",
   };
-
   receipts.forEach((r) => {
     const share = r.total / r.categories.length;
-    r.categories.forEach((c) => {
-      catMap[c] = (catMap[c] || 0) + share;
-    });
+    r.categories.forEach((c) => { catMap[c] = (catMap[c] || 0) + share; });
   });
-
   return Object.entries(catMap).map(([name, value]) => ({
     name,
     value: Math.round(value * 100) / 100,
@@ -53,15 +43,79 @@ export function getSpendingData(receipts: Receipt[]): SpendingCategory[] {
 }
 
 export function getInsights(receipts: Receipt[]): Insight[] {
-  const total = receipts.reduce((s, r) => s + r.total, 0);
-  const spending = getSpendingData(receipts);
-  const top = spending.sort((a, b) => b.value - a.value)[0];
-  const topPct = total > 0 ? Math.round((top?.value / total) * 100) : 0;
+  if (receipts.length === 0) return [];
 
-  return [
-    { icon: "🍕", text: `${top?.name || "Food"} takes up ${topPct}% of your spending`, highlight: `${topPct}%`, trend: "up" },
-    { icon: "📈", text: "You spent 12% more this week than last", highlight: "12%", trend: "up" },
-    { icon: "🛒", text: "Most purchased item: Milk (bought 5 times)", highlight: "5 times", trend: "neutral" },
-    { icon: "💡", text: "Snack spending decreased by 8%", highlight: "8%", trend: "down" },
-  ];
+  const insights: Insight[] = [];
+  const total = receipts.reduce((s, r) => s + r.total, 0);
+  const spending = getSpendingData(receipts).sort((a, b) => b.value - a.value);
+
+  // 1 — Top category distribution
+  if (spending.length > 0) {
+    const top = spending[0];
+    const pct = Math.round((top.value / total) * 100);
+    insights.push({
+      icon: "📊",
+      text: `${top.name} takes up ${pct}% of your spending`,
+      highlightedText: { before: `${top.name} takes up`, value: `${pct}%`, after: "of your spending" },
+      trend: pct > 40 ? "up" : "neutral",
+      type: "distribution",
+    });
+  }
+
+  // 2 — Impulse / unnecessary spending detection
+  const impulseTotal = spending
+    .filter((s) => IMPULSE_CATEGORIES.includes(s.name))
+    .reduce((sum, s) => sum + s.value, 0);
+  const impulsePct = total > 0 ? Math.round((impulseTotal / total) * 100) : 0;
+  if (impulsePct > 0) {
+    insights.push({
+      icon: "⚠️",
+      text: `Impulse purchases (snacks & drinks) account for ${impulsePct}% — $${impulseTotal.toFixed(0)} total`,
+      highlightedText: { before: "Impulse purchases account for", value: `${impulsePct}%`, after: `— $${impulseTotal.toFixed(0)} total` },
+      trend: impulsePct > 25 ? "up" : "neutral",
+      type: "impulse",
+    });
+  }
+
+  // 3 — Most frequently purchased item
+  const itemCounts: Record<string, number> = {};
+  receipts.forEach((r) => r.items.forEach((i) => { itemCounts[i.name] = (itemCounts[i.name] || 0) + 1; }));
+  const topItem = Object.entries(itemCounts).sort((a, b) => b[1] - a[1])[0];
+  if (topItem) {
+    insights.push({
+      icon: "🏆",
+      text: `Most purchased item: ${topItem[0]} — bought ${topItem[1]} ${topItem[1] === 1 ? "time" : "times"}`,
+      highlightedText: { before: "Most purchased:", value: topItem[0], after: `bought ${topItem[1]}×` },
+      trend: "neutral",
+      type: "top-item",
+    });
+  }
+
+  // 4 — Simulated trend (week-over-week change)
+  const weekTotal = allReceipts.slice(0, 4).reduce((s, r) => s + r.total, 0);
+  const prevWeekTotal = allReceipts.slice(4).reduce((s, r) => s + r.total, 0);
+  if (prevWeekTotal > 0) {
+    const change = Math.round(((weekTotal - prevWeekTotal) / prevWeekTotal) * 100);
+    const direction = change >= 0 ? "up" : "down";
+    const absChange = Math.abs(change);
+    insights.push({
+      icon: direction === "up" ? "📈" : "📉",
+      text: `Spending ${direction === "up" ? "increased" : "decreased"} by ${absChange}% compared to last period`,
+      highlightedText: { before: `Spending ${direction === "up" ? "increased" : "decreased"} by`, value: `${absChange}%`, after: "vs. last period" },
+      trend: direction,
+      type: "trend",
+    });
+  }
+
+  // 5 — Highest single receipt
+  const maxReceipt = receipts.reduce((max, r) => (r.total > max.total ? r : max), receipts[0]);
+  insights.push({
+    icon: "💳",
+    text: `Biggest receipt: $${maxReceipt.total.toFixed(2)} at ${maxReceipt.store}`,
+    highlightedText: { before: "Biggest receipt:", value: `$${maxReceipt.total.toFixed(2)}`, after: `at ${maxReceipt.store}` },
+    trend: "neutral",
+    type: "category-high",
+  });
+
+  return insights.slice(0, 5);
 }

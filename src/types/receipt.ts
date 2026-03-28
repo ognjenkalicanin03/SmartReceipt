@@ -18,9 +18,12 @@ export interface SpendingCategory {
   color: string;
 }
 
+export type InsightType = "distribution" | "trend" | "top-item" | "impulse" | "category-high";
+
 export interface Insight {
   icon: string;
   text: string;
-  highlight: string;
+  highlightedText: { before: string; value: string; after: string };
   trend: "up" | "down" | "neutral";
+  type: InsightType;
 }
