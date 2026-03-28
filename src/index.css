@@ -8,13 +8,13 @@
   :root {
     --font-sans: 'Plus Jakarta Sans', system-ui, sans-serif;
 
-    --background: 210 20% 98%;
+    --background: 193 40% 92%;
     --foreground: 245 16% 18%;
 
-    --card: 0 0% 100%;
+    --card: 193 35% 96%;
     --card-foreground: 245 16% 18%;
 
-    --popover: 0 0% 100%;
+    --popover: 193 35% 96%;
     --popover-foreground: 245 16% 18%;
 
     --primary: 245 16% 18%;
@@ -23,7 +23,7 @@
     --secondary: 193 74% 82%;
     --secondary-foreground: 245 16% 18%;
 
-    --muted: 210 20% 94%;
+    --muted: 193 30% 88%;
     --muted-foreground: 245 10% 45%;
 
     --accent: 27 38% 73%;
@@ -32,8 +32,8 @@
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 210 20% 90%;
-    --input: 210 20% 90%;
+    --border: 193 25% 85%;
+    --input: 193 25% 85%;
     --ring: 193 74% 82%;
 
     --radius: 0.75rem;
@@ -93,10 +93,10 @@
 
 @keyframes bg-pulse {
   0%, 100% {
-    background-color: hsl(210, 20%, 98%);
+    background-color: hsl(193, 40%, 92%);
   }
   50% {
-    background-color: hsl(193, 50%, 95%);
+    background-color: hsl(193, 55%, 89%);
   }
 }
 
@@ -109,7 +109,7 @@
     background-color: hsl(245, 20%, 12%);
   }
   50% {
-    background-color: hsl(220, 25%, 15%);
+    background-color: hsl(245, 18%, 15%);
   }
 }
 
