@@ -13,7 +13,7 @@ import { Loader2 } from "lucide-react";
 const timeFilters = ["Week", "Month", "All time"] as const;
 
 const Receipts = () => {
-  const { receipts, loading } = useReceipts();
+  const { receipts, loading, deleteReceipt } = useReceipts();
   const [activeTime, setActiveTime] = useState("All time");
   const [activeCategory, setActiveCategory] = useState("All");
   const [selectedReceipt, setSelectedReceipt] = useState<Receipt | null>(null);
