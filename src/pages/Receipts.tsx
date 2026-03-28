@@ -71,7 +71,7 @@ const Receipts = () => {
           onTimeChange={setActiveTime}
           onCategoryChange={setActiveCategory}
         />
-        <ReceiptList receipts={filtered} onSelect={setSelectedReceipt} />
+        <ReceiptList receipts={filtered} onSelect={setSelectedReceipt} onDelete={deleteReceipt} />
       </div>
       <ReceiptDetail
         receipt={selectedReceipt}
