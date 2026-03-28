@@ -36,9 +36,9 @@ const TopNavbar = () => {
             <span>🧾</span>
             <span>My Receipts</span>
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => navigate("/settings")} className="cursor-pointer gap-2">
+          <DropdownMenuItem onClick={() => navigate("/profile")} className="cursor-pointer gap-2">
             <span>⚙️</span>
-            <span>Settings</span>
+            <span>Profile Settings</span>
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => navigate("/")} className="cursor-pointer gap-2 text-destructive focus:text-destructive">
             <span>🚪</span>

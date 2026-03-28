@@ -1,4 +1,4 @@
-import { Home, Search, PlusCircle, Bell } from "lucide-react";
+import { Home, Search, PlusCircle, User } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
@@ -6,7 +6,7 @@ const tabs = [
   { icon: Home, label: "Home", path: "/home" },
   { icon: Search, label: "Search", path: "/search" },
   { icon: PlusCircle, label: "Scan", path: "/scan" },
-  { icon: Bell, label: "Activity", path: "/activity" },
+  { icon: User, label: "Profile", path: "/profile" },
 ];
 
 const BottomNavbar = () => {
