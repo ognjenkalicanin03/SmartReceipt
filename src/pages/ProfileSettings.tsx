@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { Camera, Eye, EyeOff, Sun, Moon, ChevronDown } from "lucide-react";
+import { Camera, Eye, EyeOff, Sun, Moon, ChevronDown, LogOut } from "lucide-react";
 import { useTheme } from "next-themes";
+import { useNavigate } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,7 +16,9 @@ import { supabase } from "@/integrations/supabase/client";
 const ProfileSettings = () => {
   const { toast } = useToast();
   const { theme, setTheme } = useTheme();
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+  
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -234,6 +237,19 @@ const ProfileSettings = () => {
           </CardContent>
         )}
       </Card>
+
+      {/* Logout */}
+      <Button
+        variant="outline"
+        className="w-full gap-2 text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
+        onClick={async () => {
+          await signOut();
+          navigate("/");
+        }}
+      >
+        <LogOut className="w-4 h-4" />
+        Logout
+      </Button>
     </div>
   );
 };

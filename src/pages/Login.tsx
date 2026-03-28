@@ -57,13 +57,13 @@ const Login = () => {
   return (
     <div className="min-h-screen flex flex-col auth-gradient">
       <div className="flex-1 flex flex-col items-center justify-end pb-8 px-6">
-        <div className="w-16 h-16 rounded-2xl bg-secondary/20 backdrop-blur-sm flex items-center justify-center mb-4">
-          <Receipt className="w-8 h-8 text-secondary" />
+        <div className="w-16 h-16 rounded-2xl bg-white/10 backdrop-blur-sm flex items-center justify-center mb-4">
+          <Receipt className="w-8 h-8 text-[hsl(193,74%,82%)]" />
         </div>
-        <h1 className="text-2xl font-bold text-primary-foreground tracking-tight">
+        <h1 className="text-2xl font-bold text-white tracking-tight">
           SmartReceipt
         </h1>
-        <p className="text-secondary/80 text-sm mt-1">
+        <p className="text-white/60 text-sm mt-1">
           Smart expense tracking
         </p>
       </div>
