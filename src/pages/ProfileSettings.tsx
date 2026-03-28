@@ -1,28 +1,31 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Camera, Eye, EyeOff, Sun, Moon, ChevronDown } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 const ProfileSettings = () => {
   const { toast } = useToast();
   const { theme, setTheme } = useTheme();
+  const { user } = useAuth();
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showPasswordForm, setShowPasswordForm] = useState(false);
 
-  const [profile] = useState({
-    name: "John Doe",
-    email: "john.doe@example.com",
-    phone: "+1 234 567 890",
-    joined: "January 2025",
+  const [profile, setProfile] = useState({
+    name: "",
+    email: "",
+    avatarUrl: "",
+    joined: "",
   });
 
   const [passwords, setPasswords] = useState({
@@ -31,36 +34,60 @@ const ProfileSettings = () => {
     confirm: "",
   });
 
+  useEffect(() => {
+    if (!user) return;
+
+    const email = user.email ?? "";
+    const joined = user.created_at
+      ? new Date(user.created_at).toLocaleDateString("en-US", { month: "long", year: "numeric" })
+      : "";
+
+    // Fetch profile from profiles table
+    const fetchProfile = async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("full_name, avatar_url")
+        .eq("id", user.id)
+        .single();
+
+      setProfile({
+        name: data?.full_name ?? user.user_metadata?.full_name ?? email.split("@")[0],
+        email,
+        avatarUrl: data?.avatar_url ?? "",
+        joined,
+      });
+    };
+
+    fetchProfile();
+  }, [user]);
+
+  const getInitials = (name: string) =>
+    name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
+
   const handlePhotoChange = () => {
     toast({
       title: "Coming soon",
-      description: "Photo upload will be available once the backend is connected.",
+      description: "Photo upload will be available soon.",
     });
   };
 
-  const handlePasswordChange = (e: React.FormEvent) => {
+  const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
     if (passwords.new !== passwords.confirm) {
-      toast({
-        title: "Passwords don't match",
-        description: "New password and confirmation must match.",
-        variant: "destructive",
-      });
+      toast({ title: "Passwords don't match", description: "New password and confirmation must match.", variant: "destructive" });
       return;
     }
     if (passwords.new.length < 6) {
-      toast({
-        title: "Password too short",
-        description: "Password must be at least 6 characters.",
-        variant: "destructive",
-      });
+      toast({ title: "Password too short", description: "Password must be at least 6 characters.", variant: "destructive" });
       return;
     }
-    toast({
-      title: "Password updated",
-      description: "Your password has been changed successfully.",
-    });
-    setPasswords({ current: "", new: "", confirm: "" });
+    const { error } = await supabase.auth.updateUser({ password: passwords.new });
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Password updated", description: "Your password has been changed successfully." });
+      setPasswords({ current: "", new: "", confirm: "" });
+    }
   };
 
   return (
@@ -73,9 +100,9 @@ const ProfileSettings = () => {
           <div className="flex flex-col sm:flex-row items-center gap-6">
             <div className="relative group">
               <Avatar className="h-24 w-24">
-                <AvatarImage src="" alt={profile.name} />
+                <AvatarImage src={profile.avatarUrl} alt={profile.name} />
                 <AvatarFallback className="bg-accent text-accent-foreground text-2xl font-bold">
-                  {profile.name.split(" ").map(n => n[0]).join("")}
+                  {getInitials(profile.name || "U")}
                 </AvatarFallback>
               </Avatar>
               <button
@@ -89,7 +116,6 @@ const ProfileSettings = () => {
             <div className="flex-1 space-y-1 text-center sm:text-left">
               <h2 className="text-xl font-semibold text-foreground">{profile.name}</h2>
               <p className="text-sm text-muted-foreground">{profile.email}</p>
-              <p className="text-sm text-muted-foreground">{profile.phone}</p>
               <p className="text-xs text-muted-foreground">Member since {profile.joined}</p>
             </div>
           </div>
