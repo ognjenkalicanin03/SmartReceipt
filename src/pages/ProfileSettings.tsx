@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Camera, Eye, EyeOff, Sun, Moon } from "lucide-react";
+import { Camera, Eye, EyeOff, Sun, Moon, ChevronDown } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
