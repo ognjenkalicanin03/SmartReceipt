@@ -11,6 +11,7 @@ import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import Home from "./pages/Home";
+import ProcessingReceipt from "./pages/ProcessingReceipt";
 import Receipts from "./pages/Receipts";
 import HowItWorks from "./pages/HowItWorks";
 import ProfileSettings from "./pages/ProfileSettings";
@@ -35,6 +36,7 @@ const App = () => (
               <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
 
                 <Route path="/home" element={<Home />} />
+                <Route path="/processing" element={<ProcessingReceipt />} />
                 <Route path="/receipts" element={<Receipts />} />
                 <Route path="/how-it-works" element={<HowItWorks />} />
                 <Route path="/profile" element={<ProfileSettings />} />

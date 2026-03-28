@@ -1,28 +1,25 @@
 import { useRef } from "react";
-import { Camera, Upload } from "lucide-react";
+import { Upload } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
 import heroImage from "@/assets/hero-receipts.jpg";
 
 const Home = () => {
-  const { toast } = useToast();
+  const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const processFile = (file: File) => {
+    navigate("/processing", { state: { file } });
+  };
+
   const handleScanReceipt = () => {
-    // Use capture attribute to open camera on mobile
     const input = document.createElement("input");
     input.type = "file";
     input.accept = "image/*";
     input.capture = "environment";
     input.onchange = (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
-      if (file) {
-        toast({
-          title: "Receipt captured!",
-          description: `File "${file.name}" ready for processing.`,
-        });
-        // TODO: process receipt
-      }
+      if (file) processFile(file);
     };
     input.click();
   };
@@ -33,14 +30,7 @@ const Home = () => {
 
   const handleFileSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      toast({
-        title: "Image uploaded!",
-        description: `File "${file.name}" ready for processing.`,
-      });
-      // TODO: process receipt
-    }
-    // Reset so user can pick same file again
+    if (file) processFile(file);
     e.target.value = "";
   };
 
@@ -60,7 +50,7 @@ const Home = () => {
                 Upload a photo of your receipt and get automatic insights.
               </p>
 
-              {/* CTA buttons - visible on desktop below text */}
+              {/* Desktop CTA */}
               <div className="hidden md:flex flex-col items-start gap-3 mt-8">
                 <Button size="lg" onClick={handleScanReceipt} className="gap-2 text-base">
                   📷 Scan Receipt
@@ -79,30 +69,21 @@ const Home = () => {
             <div className="flex-1 relative flex items-center justify-center md:flex-[1.3]">
               <div className="hidden md:block absolute inset-y-0 -left-8 w-48 bg-gradient-to-r from-background via-background/80 to-transparent z-10" />
               <div className="md:hidden absolute inset-x-0 -top-4 h-24 bg-gradient-to-b from-background via-background/60 to-transparent z-10" />
-
               <div
                 className="relative w-full"
                 style={{
-                  WebkitMaskImage:
-                    "linear-gradient(to right, transparent, black 15%, black 85%, transparent), linear-gradient(to bottom, transparent, black 15%, black 85%, transparent)",
+                  WebkitMaskImage: "linear-gradient(to right, transparent, black 15%, black 85%, transparent), linear-gradient(to bottom, transparent, black 15%, black 85%, transparent)",
                   WebkitMaskComposite: "destination-in",
-                  maskImage:
-                    "linear-gradient(to right, transparent, black 15%, black 85%, transparent), linear-gradient(to bottom, transparent, black 15%, black 85%, transparent)",
+                  maskImage: "linear-gradient(to right, transparent, black 15%, black 85%, transparent), linear-gradient(to bottom, transparent, black 15%, black 85%, transparent)",
                   maskComposite: "intersect",
                 }}
               >
                 <div className="absolute -inset-4 bg-secondary/20 rounded-3xl blur-3xl" />
-                <img
-                  src={heroImage}
-                  alt="Receipts and groceries flat lay"
-                  width={1024}
-                  height={1024}
-                  className="relative object-cover w-full aspect-[4/3] md:aspect-square"
-                />
+                <img src={heroImage} alt="Receipts and groceries flat lay" width={1024} height={1024} className="relative object-cover w-full aspect-[4/3] md:aspect-square" />
               </div>
             </div>
 
-            {/* CTA buttons - mobile, below image */}
+            {/* Mobile CTA */}
             <div className="flex md:hidden flex-col items-center gap-3 mt-6 w-full z-20">
               <Button size="lg" onClick={handleScanReceipt} className="gap-2 text-base w-full max-w-xs">
                 📷 Scan Receipt
@@ -119,14 +100,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Hidden file input for gallery upload */}
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={handleFileSelected}
-      />
+      <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileSelected} />
     </div>
   );
 };
