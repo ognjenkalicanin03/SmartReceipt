@@ -16,6 +16,7 @@ const ProfileSettings = () => {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
 
   const [profile] = useState({
     name: "John Doe",
