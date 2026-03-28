@@ -27,7 +27,7 @@ const Home = () => {
               {/* Mobile top fade */}
               <div className="md:hidden absolute inset-x-0 -top-4 h-24 bg-gradient-to-b from-background via-background/60 to-transparent z-10" />
 
-              <div className="relative w-full" style={{ WebkitMaskImage: 'radial-gradient(ellipse 70% 65% at center, black 20%, transparent 65%)', maskImage: 'radial-gradient(ellipse 70% 65% at center, black 20%, transparent 65%)' }}>
+              <div className="relative w-full" style={{ WebkitMaskImage: 'linear-gradient(to right, transparent, black 15%, black 85%, transparent), linear-gradient(to bottom, transparent, black 15%, black 85%, transparent)', WebkitMaskComposite: 'destination-in', maskImage: 'linear-gradient(to right, transparent, black 15%, black 85%, transparent), linear-gradient(to bottom, transparent, black 15%, black 85%, transparent)', maskComposite: 'intersect' }}>
                 <div className="absolute -inset-4 bg-secondary/20 rounded-3xl blur-3xl" />
                 <img
                   src={heroImage}
