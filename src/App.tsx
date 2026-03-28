@@ -8,6 +8,7 @@ import Register from "./pages/Register.tsx";
 import ForgotPassword from "./pages/ForgotPassword.tsx";
 import Home from "./pages/Home.tsx";
 import NotFound from "./pages/NotFound.tsx";
+import AppLayout from "./components/AppLayout.tsx";
 
 const queryClient = new QueryClient();
 
@@ -21,7 +22,9 @@ const App = () => (
           <Route path="/" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/home" element={<Home />} />
+          <Route element={<AppLayout />}>
+            <Route path="/home" element={<Home />} />
+          </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
