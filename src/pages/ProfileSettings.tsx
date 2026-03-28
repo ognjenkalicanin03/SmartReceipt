@@ -16,6 +16,8 @@ import { supabase } from "@/integrations/supabase/client";
 const ProfileSettings = () => {
   const { toast } = useToast();
   const { theme, setTheme } = useTheme();
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
