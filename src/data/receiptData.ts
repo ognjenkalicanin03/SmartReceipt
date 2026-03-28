@@ -1,13 +1,13 @@
 import { Receipt, SpendingCategory, Insight } from "@/types/receipt";
 
 export const allReceipts: Receipt[] = [
-  { id: 1, store: "Walmart", date: "Mar 26, 2026", total: 48.92, items: [{ name: "Milk", price: 4.29 }, { name: "Bread", price: 3.49 }, { name: "Eggs", price: 5.99 }], categories: ["Food"] },
-  { id: 2, store: "CVS Pharmacy", date: "Mar 25, 2026", total: 23.15, items: [{ name: "Shampoo", price: 8.49 }, { name: "Toothpaste", price: 4.99 }], categories: ["Hygiene"] },
-  { id: 3, store: "Target", date: "Mar 24, 2026", total: 67.30, items: [{ name: "Chicken", price: 12.99 }, { name: "Rice", price: 6.49 }, { name: "Soda", price: 5.99 }], categories: ["Food", "Drinks"] },
-  { id: 4, store: "Trader Joe's", date: "Mar 23, 2026", total: 35.80, items: [{ name: "Granola", price: 4.99 }, { name: "Chips", price: 3.49 }, { name: "Juice", price: 4.29 }], categories: ["Snacks", "Drinks"] },
-  { id: 5, store: "Whole Foods", date: "Mar 22, 2026", total: 89.40, items: [{ name: "Salmon", price: 14.99 }, { name: "Avocado", price: 2.49 }, { name: "Quinoa", price: 7.99 }], categories: ["Food"] },
-  { id: 6, store: "Costco", date: "Mar 15, 2026", total: 142.60, items: [{ name: "Paper Towels", price: 18.99 }, { name: "Detergent", price: 14.49 }, { name: "Soap", price: 9.99 }], categories: ["Hygiene"] },
-  { id: 7, store: "Aldi", date: "Mar 10, 2026", total: 31.20, items: [{ name: "Yogurt", price: 3.29 }, { name: "Cookies", price: 2.99 }, { name: "Pretzels", price: 1.99 }], categories: ["Food", "Snacks"] },
+  { id: "mock-1", store: "Walmart", date: "Mar 26, 2026", total: 48.92, items: [{ name: "Milk", price: 4.29 }, { name: "Bread", price: 3.49 }, { name: "Eggs", price: 5.99 }], categories: ["Food"] },
+  { id: "mock-2", store: "CVS Pharmacy", date: "Mar 25, 2026", total: 23.15, items: [{ name: "Shampoo", price: 8.49 }, { name: "Toothpaste", price: 4.99 }], categories: ["Hygiene"] },
+  { id: "mock-3", store: "Target", date: "Mar 24, 2026", total: 67.30, items: [{ name: "Chicken", price: 12.99 }, { name: "Rice", price: 6.49 }, { name: "Soda", price: 5.99 }], categories: ["Food", "Drinks"] },
+  { id: "mock-4", store: "Trader Joe's", date: "Mar 23, 2026", total: 35.80, items: [{ name: "Granola", price: 4.99 }, { name: "Chips", price: 3.49 }, { name: "Juice", price: 4.29 }], categories: ["Snacks", "Drinks"] },
+  { id: "mock-5", store: "Whole Foods", date: "Mar 22, 2026", total: 89.40, items: [{ name: "Salmon", price: 14.99 }, { name: "Avocado", price: 2.49 }, { name: "Quinoa", price: 7.99 }], categories: ["Food"] },
+  { id: "mock-6", store: "Costco", date: "Mar 15, 2026", total: 142.60, items: [{ name: "Paper Towels", price: 18.99 }, { name: "Detergent", price: 14.49 }, { name: "Soap", price: 9.99 }], categories: ["Hygiene"] },
+  { id: "mock-7", store: "Aldi", date: "Mar 10, 2026", total: 31.20, items: [{ name: "Yogurt", price: 3.29 }, { name: "Cookies", price: 2.99 }, { name: "Pretzels", price: 1.99 }], categories: ["Food", "Snacks"] },
 ];
 
 export const timeFilters = ["Week", "Month", "All time"] as const;
