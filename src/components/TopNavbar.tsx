@@ -8,6 +8,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
 
 const navLinks = [
   { label: "Home", path: "/home" },
@@ -18,6 +19,16 @@ const navLinks = [
 const TopNavbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user, signOut } = useAuth();
+
+  const initials = user?.user_metadata?.full_name
+    ? user.user_metadata.full_name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2)
+    : "U";
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate("/");
+  };
 
   return (
     <header className="hidden md:flex items-center justify-between px-6 py-3 bg-card border-b border-border">
@@ -54,7 +65,7 @@ const TopNavbar = () => {
             <Avatar className="h-9 w-9 cursor-pointer">
               <AvatarImage src="" alt="User" />
               <AvatarFallback className="bg-accent text-accent-foreground text-sm font-semibold">
-                U
+                {initials}
               </AvatarFallback>
             </Avatar>
           </button>
@@ -64,7 +75,7 @@ const TopNavbar = () => {
             <span>⚙️</span>
             <span>Profile Settings</span>
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => navigate("/")} className="cursor-pointer gap-2 text-destructive focus:text-destructive">
+          <DropdownMenuItem onClick={handleLogout} className="cursor-pointer gap-2 text-destructive focus:text-destructive">
             <span>🚪</span>
             <span>Log out</span>
           </DropdownMenuItem>

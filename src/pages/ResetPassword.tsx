@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,51 +8,63 @@ import { Receipt, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
-const Login = () => {
-  const [email, setEmail] = useState("");
+const ResetPassword = () => {
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isRecovery, setIsRecovery] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  useEffect(() => {
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    if (hashParams.get("type") === "recovery") {
+      setIsRecovery(true);
+    }
+
+    supabase.auth.onAuthStateChange((event) => {
+      if (event === "PASSWORD_RECOVERY") {
+        setIsRecovery(true);
+      }
+    });
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!email.trim() || !password.trim()) {
-      toast({ title: "Please fill in all fields", variant: "destructive" });
+    if (password !== confirmPassword) {
+      toast({ title: "Passwords do not match", variant: "destructive" });
+      return;
+    }
+
+    if (password.length < 6) {
+      toast({ title: "Password must be at least 6 characters", variant: "destructive" });
       return;
     }
 
     setLoading(true);
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email: email.trim(),
-      password,
-    });
+    const { error } = await supabase.auth.updateUser({ password });
 
     setLoading(false);
 
     if (error) {
-      if (error.message.includes("Email not confirmed")) {
-        toast({
-          title: "Email not verified",
-          description: "Please check your inbox and verify your email before logging in.",
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Login failed",
-          description: error.message,
-          variant: "destructive",
-        });
-      }
+      toast({ title: "Error", description: error.message, variant: "destructive" });
       return;
     }
 
-    toast({ title: "Successfully logged in!" });
+    toast({ title: "Password updated successfully!" });
     navigate("/home");
   };
+
+  if (!isRecovery) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <p className="text-muted-foreground">Invalid or expired reset link.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col auth-gradient">
@@ -64,49 +76,26 @@ const Login = () => {
           SmartReceipt
         </h1>
         <p className="text-secondary/80 text-sm mt-1">
-          Smart expense tracking
+          Set your new password
         </p>
       </div>
 
-      <Card className="rounded-t-3xl rounded-b-none border-0 shadow-2xl flex-1 min-h-[60vh]">
+      <Card className="rounded-t-3xl rounded-b-none border-0 shadow-2xl flex-1 min-h-[55vh]">
         <CardContent className="px-6 pt-8 pb-8">
           <h2 className="text-xl font-semibold text-foreground mb-6">
-            Login
+            Reset Password
           </h2>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-medium text-muted-foreground">
-                Email address
+              <Label htmlFor="password" className="text-sm font-medium text-muted-foreground">
+                New password
               </Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="you@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="h-12 rounded-xl bg-muted/50 border-border/50 focus:border-secondary focus:ring-secondary/20"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password" className="text-sm font-medium text-muted-foreground">
-                  Password
-                </Label>
-                <Link
-                  to="/forgot-password"
-                  className="text-xs font-medium text-accent hover:text-accent/80 transition-colors"
-                >
-                  Forgot password?
-                </Link>
-              </div>
               <div className="relative">
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
+                  placeholder="At least 6 characters"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -122,28 +111,33 @@ const Login = () => {
               </div>
             </div>
 
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword" className="text-sm font-medium text-muted-foreground">
+                Confirm new password
+              </Label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                placeholder="Repeat password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+                className="h-12 rounded-xl bg-muted/50 border-border/50 focus:border-secondary focus:ring-secondary/20"
+              />
+            </div>
+
             <Button
               type="submit"
               disabled={loading}
               className="w-full h-12 rounded-xl text-base font-semibold bg-primary hover:bg-primary/90 transition-all duration-200"
             >
-              {loading ? "Logging in..." : "Log in"}
+              {loading ? "Updating..." : "Update password"}
             </Button>
           </form>
-
-          <p className="text-center text-sm text-muted-foreground mt-8">
-            Don't have an account?{" "}
-            <Link
-              to="/register"
-              className="font-semibold text-accent hover:text-accent/80 transition-colors"
-            >
-              Sign up
-            </Link>
-          </p>
         </CardContent>
       </Card>
     </div>
   );
 };
 
-export default Login;
+export default ResetPassword;
