@@ -19,45 +19,43 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
 
-    // TODO: Replace with Supabase auth
+    // TODO: Replace with real auth
     setTimeout(() => {
       setLoading(false);
-      toast({ title: "Uspešno ste se prijavili!" });
+      toast({ title: "Successfully logged in!" });
       navigate("/home");
     }, 1000);
   };
 
   return (
     <div className="min-h-screen flex flex-col auth-gradient">
-      {/* Top decorative area */}
       <div className="flex-1 flex flex-col items-center justify-end pb-8 px-6">
         <div className="w-16 h-16 rounded-2xl bg-secondary/20 backdrop-blur-sm flex items-center justify-center mb-4">
           <Receipt className="w-8 h-8 text-secondary" />
         </div>
         <h1 className="text-2xl font-bold text-primary-foreground tracking-tight">
-          SmartRačun
+          SmartReceipt
         </h1>
         <p className="text-secondary/80 text-sm mt-1">
-          Pametno praćenje troškova
+          Smart expense tracking
         </p>
       </div>
 
-      {/* Form card */}
       <Card className="rounded-t-3xl rounded-b-none border-0 shadow-2xl flex-1 min-h-[60vh]">
         <CardContent className="px-6 pt-8 pb-8">
           <h2 className="text-xl font-semibold text-foreground mb-6">
-            Prijava
+            Login
           </h2>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
               <Label htmlFor="email" className="text-sm font-medium text-muted-foreground">
-                Email adresa
+                Email address
               </Label>
               <Input
                 id="email"
                 type="email"
-                placeholder="vas@email.com"
+                placeholder="you@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -68,13 +66,13 @@ const Login = () => {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label htmlFor="password" className="text-sm font-medium text-muted-foreground">
-                  Lozinka
+                  Password
                 </Label>
                 <Link
                   to="/forgot-password"
                   className="text-xs font-medium text-accent hover:text-accent/80 transition-colors"
                 >
-                  Zaboravili lozinku?
+                  Forgot password?
                 </Link>
               </div>
               <div className="relative">
@@ -102,17 +100,17 @@ const Login = () => {
               disabled={loading}
               className="w-full h-12 rounded-xl text-base font-semibold bg-primary hover:bg-primary/90 transition-all duration-200"
             >
-              {loading ? "Prijavljivanje..." : "Prijavite se"}
+              {loading ? "Logging in..." : "Log in"}
             </Button>
           </form>
 
           <p className="text-center text-sm text-muted-foreground mt-8">
-            Nemate nalog?{" "}
+            Don't have an account?{" "}
             <Link
               to="/register"
               className="font-semibold text-accent hover:text-accent/80 transition-colors"
             >
-              Registrujte se
+              Sign up
             </Link>
           </p>
         </CardContent>
