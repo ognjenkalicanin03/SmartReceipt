@@ -87,6 +87,29 @@
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-sans);
+    animation: bg-pulse 6s ease-in-out infinite;
+  }
+}
+
+@keyframes bg-pulse {
+  0%, 100% {
+    background-color: hsl(210, 20%, 98%);
+  }
+  50% {
+    background-color: hsl(193, 50%, 95%);
+  }
+}
+
+.dark body {
+  animation-name: bg-pulse-dark;
+}
+
+@keyframes bg-pulse-dark {
+  0%, 100% {
+    background-color: hsl(245, 20%, 12%);
+  }
+  50% {
+    background-color: hsl(220, 25%, 15%);
   }
 }
 
