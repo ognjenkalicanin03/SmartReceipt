@@ -1,13 +1,55 @@
+import { useRef } from "react";
+import { Camera, Upload } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 import heroImage from "@/assets/hero-receipts.jpg";
 
 const Home = () => {
+  const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleScanReceipt = () => {
+    // Use capture attribute to open camera on mobile
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.capture = "environment";
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) {
+        toast({
+          title: "Receipt captured!",
+          description: `File "${file.name}" ready for processing.`,
+        });
+        // TODO: process receipt
+      }
+    };
+    input.click();
+  };
+
+  const handleUploadImage = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      toast({
+        title: "Image uploaded!",
+        description: `File "${file.name}" ready for processing.`,
+      });
+      // TODO: process receipt
+    }
+    // Reset so user can pick same file again
+    e.target.value = "";
+  };
+
   return (
     <div className="flex-1">
-      {/* Hero Section */}
       <section className="relative overflow-hidden min-h-[calc(100vh-8rem)] md:min-h-[calc(100vh-4rem)] flex items-center">
         <div className="w-full max-w-7xl mx-auto px-6 py-12 md:py-0">
           <div className="flex flex-col md:flex-row items-center gap-0">
-            {/* Text Side - overlaps image */}
+            {/* Text Side */}
             <div className="flex-1 z-20 text-center md:text-left md:-mr-24 relative">
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-foreground leading-tight tracking-tight">
                 Scan receipts.{" "}
@@ -17,17 +59,38 @@ const Home = () => {
               <p className="mt-6 text-base sm:text-lg text-muted-foreground max-w-md mx-auto md:mx-0 leading-relaxed">
                 Upload a photo of your receipt and get automatic insights.
               </p>
+
+              {/* CTA buttons - visible on desktop below text */}
+              <div className="hidden md:flex flex-col items-start gap-3 mt-8">
+                <Button size="lg" onClick={handleScanReceipt} className="gap-2 text-base">
+                  📷 Scan Receipt
+                </Button>
+                <button
+                  onClick={handleUploadImage}
+                  className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <Upload className="w-4 h-4" />
+                  Or upload from gallery
+                </button>
+              </div>
             </div>
 
-            {/* Image Side with fade */}
+            {/* Image Side */}
             <div className="flex-1 relative flex items-center justify-center md:flex-[1.3]">
-              {/* Left fade into text */}
               <div className="hidden md:block absolute inset-y-0 -left-8 w-48 bg-gradient-to-r from-background via-background/80 to-transparent z-10" />
-              
-              {/* Mobile top fade */}
               <div className="md:hidden absolute inset-x-0 -top-4 h-24 bg-gradient-to-b from-background via-background/60 to-transparent z-10" />
 
-              <div className="relative w-full" style={{ WebkitMaskImage: 'linear-gradient(to right, transparent, black 15%, black 85%, transparent), linear-gradient(to bottom, transparent, black 15%, black 85%, transparent)', WebkitMaskComposite: 'destination-in', maskImage: 'linear-gradient(to right, transparent, black 15%, black 85%, transparent), linear-gradient(to bottom, transparent, black 15%, black 85%, transparent)', maskComposite: 'intersect' }}>
+              <div
+                className="relative w-full"
+                style={{
+                  WebkitMaskImage:
+                    "linear-gradient(to right, transparent, black 15%, black 85%, transparent), linear-gradient(to bottom, transparent, black 15%, black 85%, transparent)",
+                  WebkitMaskComposite: "destination-in",
+                  maskImage:
+                    "linear-gradient(to right, transparent, black 15%, black 85%, transparent), linear-gradient(to bottom, transparent, black 15%, black 85%, transparent)",
+                  maskComposite: "intersect",
+                }}
+              >
                 <div className="absolute -inset-4 bg-secondary/20 rounded-3xl blur-3xl" />
                 <img
                   src={heroImage}
@@ -38,9 +101,32 @@ const Home = () => {
                 />
               </div>
             </div>
+
+            {/* CTA buttons - mobile, below image */}
+            <div className="flex md:hidden flex-col items-center gap-3 mt-6 w-full z-20">
+              <Button size="lg" onClick={handleScanReceipt} className="gap-2 text-base w-full max-w-xs">
+                📷 Scan Receipt
+              </Button>
+              <button
+                onClick={handleUploadImage}
+                className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <Upload className="w-4 h-4" />
+                Or upload from gallery
+              </button>
+            </div>
           </div>
         </div>
       </section>
+
+      {/* Hidden file input for gallery upload */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleFileSelected}
+      />
     </div>
   );
 };
