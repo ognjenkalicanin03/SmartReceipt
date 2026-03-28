@@ -38,6 +38,68 @@ export type Database = {
         }
         Relationships: []
       }
+      receipt_items: {
+        Row: {
+          category: string
+          id: string
+          name: string
+          price: number
+          receipt_id: string
+        }
+        Insert: {
+          category?: string
+          id?: string
+          name: string
+          price?: number
+          receipt_id: string
+        }
+        Update: {
+          category?: string
+          id?: string
+          name?: string
+          price?: number
+          receipt_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "receipt_items_receipt_id_fkey"
+            columns: ["receipt_id"]
+            isOneToOne: false
+            referencedRelation: "receipts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      receipts: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          image_url: string | null
+          store: string
+          total: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date?: string
+          id?: string
+          image_url?: string | null
+          store?: string
+          total?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          image_url?: string | null
+          store?: string
+          total?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
