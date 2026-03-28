@@ -10,9 +10,9 @@ const SummaryCards = ({ receipts }: Props) => {
   const avg = receipts.length > 0 ? total / receipts.length : 0;
 
   const cards = [
-    { label: "Total Spent", value: `$${total.toFixed(2)}`, icon: DollarSign },
+    { label: "Total Spent", value: `${total.toFixed(2)} RSD`, icon: DollarSign },
     { label: "Receipts", value: receipts.length.toString(), icon: Hash },
-    { label: "Avg / Receipt", value: `$${avg.toFixed(2)}`, icon: BarChart3 },
+    { label: "Avg / Receipt", value: `${avg.toFixed(2)} RSD`, icon: BarChart3 },
   ];
 
   return (

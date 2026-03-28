@@ -42,7 +42,7 @@ const ReceiptDetail = ({ receipt, open, onClose }: Props) => {
             {receipt.items.map((item) => (
               <div key={item.name} className="flex justify-between py-2 border-b border-border/50 last:border-0">
                 <span className="text-sm text-foreground">{item.name}</span>
-                <span className="text-sm font-semibold text-foreground">${item.price.toFixed(2)}</span>
+                <span className="text-sm font-semibold text-foreground">{item.price.toFixed(2)} RSD</span>
               </div>
             ))}
           </div>
@@ -50,7 +50,7 @@ const ReceiptDetail = ({ receipt, open, onClose }: Props) => {
           {/* Total */}
           <div className="flex justify-between pt-3 border-t-2 border-accent/30">
             <span className="text-base font-bold text-foreground">Total</span>
-            <span className="text-base font-bold text-accent">${receipt.total.toFixed(2)}</span>
+            <span className="text-base font-bold text-accent">{receipt.total.toFixed(2)} RSD</span>
           </div>
         </div>
       </SheetContent>
