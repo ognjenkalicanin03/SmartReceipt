@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Receipt } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -9,6 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 const navLinks = [
   { label: "Home", path: "/home" },
@@ -20,10 +22,23 @@ const TopNavbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, signOut } = useAuth();
+  const [avatarUrl, setAvatarUrl] = useState("");
 
   const initials = user?.user_metadata?.full_name
     ? user.user_metadata.full_name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2)
     : "U";
+
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("profiles")
+      .select("avatar_url")
+      .eq("id", user.id)
+      .single()
+      .then(({ data }) => {
+        if (data?.avatar_url) setAvatarUrl(data.avatar_url);
+      });
+  }, [user]);
 
   const handleLogout = async () => {
     await signOut();
@@ -63,7 +78,7 @@ const TopNavbar = () => {
         <DropdownMenuTrigger asChild>
           <button className="rounded-full outline-none focus:ring-2 focus:ring-ring">
             <Avatar className="h-9 w-9 cursor-pointer">
-              <AvatarImage src="" alt="User" />
+              <AvatarImage src={avatarUrl} alt="User" />
               <AvatarFallback className="bg-accent text-accent-foreground text-sm font-semibold">
                 {initials}
               </AvatarFallback>
