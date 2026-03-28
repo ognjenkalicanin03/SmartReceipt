@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Camera, Eye, EyeOff, Sun, Moon, ChevronDown, LogOut } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useNavigate } from "react-router-dom";
@@ -12,13 +12,15 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import AvatarCropper from "@/components/profile/AvatarCropper";
 
 const ProfileSettings = () => {
   const { toast } = useToast();
   const { theme, setTheme } = useTheme();
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
-  
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -37,6 +39,11 @@ const ProfileSettings = () => {
     confirm: "",
   });
 
+  // Cropper state
+  const [cropperOpen, setCropperOpen] = useState(false);
+  const [rawImage, setRawImage] = useState("");
+  const [uploading, setUploading] = useState(false);
+
   useEffect(() => {
     if (!user) return;
 
@@ -45,7 +52,6 @@ const ProfileSettings = () => {
       ? new Date(user.created_at).toLocaleDateString("en-US", { month: "long", year: "numeric" })
       : "";
 
-    // Fetch profile from profiles table
     const fetchProfile = async () => {
       const { data } = await supabase
         .from("profiles")
@@ -67,11 +73,52 @@ const ProfileSettings = () => {
   const getInitials = (name: string) =>
     name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
 
-  const handlePhotoChange = () => {
-    toast({
-      title: "Coming soon",
-      description: "Photo upload will be available soon.",
-    });
+  const handlePhotoSelect = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      setRawImage(reader.result as string);
+      setCropperOpen(true);
+    };
+    reader.readAsDataURL(file);
+    // Reset so same file can be re-selected
+    e.target.value = "";
+  };
+
+  const handleCropDone = async (blob: Blob) => {
+    if (!user) return;
+    setCropperOpen(false);
+    setUploading(true);
+
+    try {
+      const filePath = `${user.id}/avatar.jpg`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("avatars")
+        .upload(filePath, blob, { upsert: true, contentType: "image/jpeg" });
+
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(filePath);
+      const publicUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+
+      await supabase
+        .from("profiles")
+        .update({ avatar_url: publicUrl })
+        .eq("id", user.id);
+
+      setProfile((prev) => ({ ...prev, avatarUrl: publicUrl }));
+      toast({ title: "Photo updated", description: "Your profile photo has been saved." });
+    } catch (err: any) {
+      toast({ title: "Upload failed", description: err.message, variant: "destructive" });
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handlePasswordChange = async (e: React.FormEvent) => {
@@ -97,6 +144,15 @@ const ProfileSettings = () => {
     <div className="max-w-2xl mx-auto px-4 py-8 space-y-6">
       <h1 className="text-2xl font-bold text-foreground">Profile Settings</h1>
 
+      {/* Hidden file input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleFileChange}
+      />
+
       {/* Profile Photo & Info */}
       <Card>
         <CardContent className="pt-6">
@@ -109,7 +165,8 @@ const ProfileSettings = () => {
                 </AvatarFallback>
               </Avatar>
               <button
-                onClick={handlePhotoChange}
+                onClick={handlePhotoSelect}
+                disabled={uploading}
                 className="absolute inset-0 flex items-center justify-center bg-foreground/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
               >
                 <Camera className="w-6 h-6 text-background" />
@@ -250,6 +307,14 @@ const ProfileSettings = () => {
         <LogOut className="w-4 h-4" />
         Logout
       </Button>
+
+      {/* Avatar Cropper Dialog */}
+      <AvatarCropper
+        imageSrc={rawImage}
+        open={cropperOpen}
+        onClose={() => setCropperOpen(false)}
+        onCropDone={handleCropDone}
+      />
     </div>
   );
 };
