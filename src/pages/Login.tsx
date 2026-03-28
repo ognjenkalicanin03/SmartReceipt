@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Receipt, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -17,14 +18,40 @@ const Login = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!email.trim() || !password.trim()) {
+      toast({ title: "Please fill in all fields", variant: "destructive" });
+      return;
+    }
+
     setLoading(true);
 
-    // TODO: Replace with real auth
-    setTimeout(() => {
-      setLoading(false);
-      toast({ title: "Successfully logged in!" });
-      navigate("/home");
-    }, 1000);
+    const { error } = await supabase.auth.signInWithPassword({
+      email: email.trim(),
+      password,
+    });
+
+    setLoading(false);
+
+    if (error) {
+      if (error.message.includes("Email not confirmed")) {
+        toast({
+          title: "Email not verified",
+          description: "Please check your inbox and verify your email before logging in.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Login failed",
+          description: error.message,
+          variant: "destructive",
+        });
+      }
+      return;
+    }
+
+    toast({ title: "Successfully logged in!" });
+    navigate("/home");
   };
 
   return (

@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Receipt, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const Register = () => {
   const [name, setName] = useState("");
@@ -14,7 +15,6 @@ const Register = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -30,14 +30,37 @@ const Register = () => {
       return;
     }
 
+    if (!name.trim()) {
+      toast({ title: "Please enter your name", variant: "destructive" });
+      return;
+    }
+
     setLoading(true);
 
-    // TODO: Replace with real auth
-    setTimeout(() => {
-      setLoading(false);
-      toast({ title: "Successfully registered!" });
-      navigate("/home");
-    }, 1000);
+    const { error } = await supabase.auth.signUp({
+      email: email.trim(),
+      password,
+      options: {
+        data: { full_name: name.trim() },
+        emailRedirectTo: window.location.origin,
+      },
+    });
+
+    setLoading(false);
+
+    if (error) {
+      toast({
+        title: "Registration failed",
+        description: error.message,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    toast({
+      title: "Check your email!",
+      description: "We've sent you a verification link. Please verify your email before logging in.",
+    });
   };
 
   return (
