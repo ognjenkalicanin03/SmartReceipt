@@ -30,6 +30,12 @@ export function getSpendingData(receipts: Receipt[]): SpendingCategory[] {
     Drinks: "hsl(193, 74%, 82%)",
     Snacks: "hsl(245, 16%, 18%)",
     Hygiene: "hsl(340, 65%, 65%)",
+    Household: "hsl(160, 50%, 50%)",
+    Other: "hsl(35, 80%, 55%)",
+    Electronics: "hsl(220, 60%, 55%)",
+    Health: "hsl(0, 65%, 60%)",
+    Clothing: "hsl(280, 45%, 60%)",
+    Transport: "hsl(50, 70%, 50%)",
   };
   receipts.forEach((r) => {
     const share = r.total / r.categories.length;
