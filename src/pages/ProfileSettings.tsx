@@ -237,6 +237,19 @@ const ProfileSettings = () => {
           </CardContent>
         )}
       </Card>
+
+      {/* Logout */}
+      <Button
+        variant="outline"
+        className="w-full gap-2 text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
+        onClick={async () => {
+          await signOut();
+          navigate("/");
+        }}
+      >
+        <LogOut className="w-4 h-4" />
+        Logout
+      </Button>
     </div>
   );
 };
