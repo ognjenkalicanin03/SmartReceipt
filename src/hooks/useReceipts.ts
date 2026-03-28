@@ -61,9 +61,20 @@ export function useReceipts() {
     setLoading(false);
   };
 
+  const deleteReceipt = async (id: string) => {
+    // Items are deleted via cascade or RLS-allowed delete
+    await supabase.from("receipt_items").delete().eq("receipt_id", id);
+    const { error } = await supabase.from("receipts").delete().eq("id", id);
+    if (error) {
+      console.error("Error deleting receipt:", error);
+      throw error;
+    }
+    setReceipts((prev) => prev.filter((r) => r.id !== id));
+  };
+
   useEffect(() => {
     fetchReceipts();
   }, [user]);
 
-  return { receipts, loading, refetch: fetchReceipts };
+  return { receipts, loading, refetch: fetchReceipts, deleteReceipt };
 }
