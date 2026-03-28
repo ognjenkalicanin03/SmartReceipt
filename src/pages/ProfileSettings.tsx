@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { Camera, Eye, EyeOff, Sun, Moon, ChevronDown } from "lucide-react";
+import { Camera, Eye, EyeOff, Sun, Moon, ChevronDown, LogOut } from "lucide-react";
 import { useTheme } from "next-themes";
+import { useNavigate } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
