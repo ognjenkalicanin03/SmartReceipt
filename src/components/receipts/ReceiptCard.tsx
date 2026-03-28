@@ -21,13 +21,13 @@ const ReceiptCard = ({ receipt, onSelect }: Props) => (
           <p className="text-xs text-muted-foreground">{receipt.date}</p>
         </div>
       </div>
-      <span className="font-bold text-foreground">${receipt.total.toFixed(2)}</span>
+      <span className="font-bold text-foreground">{receipt.total.toFixed(2)} RSD</span>
     </div>
     <div className="mt-2 ml-[52px] space-y-0.5">
       {receipt.items.slice(0, 3).map((item) => (
         <div key={item.name} className="flex justify-between text-xs text-muted-foreground">
           <span>{item.name}</span>
-          <span className="font-medium text-foreground/70">${item.price.toFixed(2)}</span>
+          <span className="font-medium text-foreground/70">{item.price.toFixed(2)} RSD</span>
         </div>
       ))}
     </div>

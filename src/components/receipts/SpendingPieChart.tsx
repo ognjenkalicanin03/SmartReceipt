@@ -37,7 +37,7 @@ const SpendingPieChart = ({ data }: Props) => {
           <div key={item.name} className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
             <span className="text-xs text-muted-foreground">{item.name}</span>
-            <span className="text-xs font-semibold text-foreground">${item.value.toFixed(0)}</span>
+            <span className="text-xs font-semibold text-foreground">{item.value.toFixed(0)} RSD</span>
           </div>
         ))}
       </div>
