@@ -27,17 +27,15 @@ const Home = () => {
               {/* Mobile top fade */}
               <div className="md:hidden absolute inset-x-0 -top-4 h-24 bg-gradient-to-b from-background via-background/60 to-transparent z-10" />
 
-              <div className="relative w-full">
+              <div className="relative w-full" style={{ WebkitMaskImage: 'radial-gradient(ellipse 80% 80% at center, black 40%, transparent 75%)', maskImage: 'radial-gradient(ellipse 80% 80% at center, black 40%, transparent 75%)' }}>
                 <div className="absolute -inset-4 bg-secondary/20 rounded-3xl blur-3xl" />
                 <img
                   src={heroImage}
                   alt="Receipts and groceries flat lay"
                   width={1024}
                   height={1024}
-                  className="relative rounded-2xl shadow-2xl object-cover w-full aspect-[4/3] md:aspect-square"
+                  className="relative object-cover w-full aspect-[4/3] md:aspect-square"
                 />
-                {/* Bottom fade on mobile */}
-                <div className="md:hidden absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-background via-background/60 to-transparent rounded-b-2xl" />
               </div>
             </div>
           </div>
