@@ -105,7 +105,7 @@ const Receipts = () => {
                 {insight.text}
               </p>
               {insight.trend === "up" && <TrendingUp className="w-4 h-4 text-destructive shrink-0" />}
-              {insight.trend === "down" && <TrendingDown className="w-4 h-4 text-green-500 shrink-0" />}
+              {insight.trend === "down" && <TrendingDown className="w-4 h-4 text-secondary-foreground shrink-0" />}
             </div>
           ))}
         </section>
