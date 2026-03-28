@@ -76,9 +76,9 @@ const ReceiptCard = ({ receipt, onSelect, onDelete }: Props) => {
       <AlertDialog open={showConfirm} onOpenChange={setShowConfirm}>
         <AlertDialogContent className="rounded-2xl">
           <AlertDialogHeader>
-            <AlertDialogTitle>Da li stvarno želite da obrišete?</AlertDialogTitle>
+            <AlertDialogTitle>Are you sure you want to delete this?</AlertDialogTitle>
             <AlertDialogDescription>
-              Račun iz <strong>{receipt.store}</strong> će biti trajno obrisan.
+              The receipt from <strong>{receipt.store}</strong> will be permanently deleted.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
