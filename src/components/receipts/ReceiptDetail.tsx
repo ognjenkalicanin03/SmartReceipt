@@ -1,6 +1,8 @@
 import { Receipt } from "@/types/receipt";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Receipt as ReceiptIcon, X } from "lucide-react";
+import { Receipt as ReceiptIcon } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { formatAmount } from "@/lib/currency";
 
 interface Props {
   receipt: Receipt | null;
@@ -9,6 +11,9 @@ interface Props {
 }
 
 const ReceiptDetail = ({ receipt, open, onClose }: Props) => {
+  const { profile } = useAuth();
+  const currency = profile.currency;
+
   if (!receipt) return null;
 
   return (
@@ -27,30 +32,25 @@ const ReceiptDetail = ({ receipt, open, onClose }: Props) => {
         </SheetHeader>
 
         <div className="space-y-5 pb-6">
-          {/* Categories */}
           <div className="flex gap-2 flex-wrap">
             {receipt.categories.map((c) => (
-              <span key={c} className="px-3 py-1 rounded-full bg-secondary/50 text-xs font-medium text-secondary-foreground">
-                {c}
-              </span>
+              <span key={c} className="px-3 py-1 rounded-full bg-secondary/50 text-xs font-medium text-secondary-foreground">{c}</span>
             ))}
           </div>
 
-          {/* Items */}
           <div className="space-y-1">
             <h3 className="text-sm font-semibold text-foreground mb-2">Items</h3>
             {receipt.items.map((item) => (
               <div key={item.name} className="flex justify-between py-2 border-b border-border/50 last:border-0">
                 <span className="text-sm text-foreground">{item.name}</span>
-                <span className="text-sm font-semibold text-foreground">{item.price.toFixed(2)} RSD</span>
+                <span className="text-sm font-semibold text-foreground">{formatAmount(item.price, currency)}</span>
               </div>
             ))}
           </div>
 
-          {/* Total */}
           <div className="flex justify-between pt-3 border-t-2 border-accent/30">
             <span className="text-base font-bold text-foreground">Total</span>
-            <span className="text-base font-bold text-accent">{receipt.total.toFixed(2)} RSD</span>
+            <span className="text-base font-bold text-accent">{formatAmount(receipt.total, currency)}</span>
           </div>
         </div>
       </SheetContent>

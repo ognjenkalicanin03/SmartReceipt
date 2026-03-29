@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Camera, Eye, EyeOff, Sun, Moon, ChevronDown, LogOut } from "lucide-react";
+import { Camera, Eye, EyeOff, Sun, Moon, ChevronDown, LogOut, Globe } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useNavigate } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -9,15 +9,17 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import AvatarCropper from "@/components/profile/AvatarCropper";
+import { COUNTRIES, getCurrencyForCountry } from "@/lib/currency";
 
 const ProfileSettings = () => {
   const { toast } = useToast();
   const { theme, setTheme } = useTheme();
-  const { user, signOut } = useAuth();
+  const { user, signOut, profile: authProfile, refreshProfile } = useAuth();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -31,6 +33,8 @@ const ProfileSettings = () => {
     email: "",
     avatarUrl: "",
     joined: "",
+    country: "Serbia",
+    currency: "RSD",
   });
 
   const [passwords, setPasswords] = useState({
@@ -39,7 +43,6 @@ const ProfileSettings = () => {
     confirm: "",
   });
 
-  // Cropper state
   const [cropperOpen, setCropperOpen] = useState(false);
   const [rawImage, setRawImage] = useState("");
   const [uploading, setUploading] = useState(false);
@@ -55,7 +58,7 @@ const ProfileSettings = () => {
     const fetchProfile = async () => {
       const { data } = await supabase
         .from("profiles")
-        .select("full_name, avatar_url")
+        .select("full_name, avatar_url, country, currency")
         .eq("id", user.id)
         .single();
 
@@ -64,6 +67,8 @@ const ProfileSettings = () => {
         email,
         avatarUrl: data?.avatar_url ?? "",
         joined,
+        country: data?.country ?? "Serbia",
+        currency: data?.currency ?? "RSD",
       });
     };
 
@@ -73,9 +78,7 @@ const ProfileSettings = () => {
   const getInitials = (name: string) =>
     name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
 
-  const handlePhotoSelect = () => {
-    fileInputRef.current?.click();
-  };
+  const handlePhotoSelect = () => fileInputRef.current?.click();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -86,7 +89,6 @@ const ProfileSettings = () => {
       setCropperOpen(true);
     };
     reader.readAsDataURL(file);
-    // Reset so same file can be re-selected
     e.target.value = "";
   };
 
@@ -94,30 +96,39 @@ const ProfileSettings = () => {
     if (!user) return;
     setCropperOpen(false);
     setUploading(true);
-
     try {
       const filePath = `${user.id}/avatar.jpg`;
-
       const { error: uploadError } = await supabase.storage
         .from("avatars")
         .upload(filePath, blob, { upsert: true, contentType: "image/jpeg" });
-
       if (uploadError) throw uploadError;
-
       const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(filePath);
       const publicUrl = `${urlData.publicUrl}?t=${Date.now()}`;
-
-      await supabase
-        .from("profiles")
-        .update({ avatar_url: publicUrl })
-        .eq("id", user.id);
-
+      await supabase.from("profiles").update({ avatar_url: publicUrl }).eq("id", user.id);
       setProfile((prev) => ({ ...prev, avatarUrl: publicUrl }));
       toast({ title: "Photo updated", description: "Your profile photo has been saved." });
     } catch (err: any) {
       toast({ title: "Upload failed", description: err.message, variant: "destructive" });
     } finally {
       setUploading(false);
+    }
+  };
+
+  const handleCountryChange = async (newCountry: string) => {
+    if (!user) return;
+    const newCurrency = getCurrencyForCountry(newCountry);
+    setProfile((prev) => ({ ...prev, country: newCountry, currency: newCurrency }));
+
+    const { error } = await supabase
+      .from("profiles")
+      .update({ country: newCountry, currency: newCurrency })
+      .eq("id", user.id);
+
+    if (error) {
+      toast({ title: "Error", description: "Failed to update country.", variant: "destructive" });
+    } else {
+      toast({ title: "Country updated", description: `Currency set to ${newCurrency}.` });
+      await refreshProfile();
     }
   };
 
@@ -144,14 +155,7 @@ const ProfileSettings = () => {
     <div className="max-w-2xl mx-auto px-4 py-8 space-y-6">
       <h1 className="text-2xl font-bold text-foreground">Profile Settings</h1>
 
-      {/* Hidden file input */}
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={handleFileChange}
-      />
+      <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
 
       {/* Profile Photo & Info */}
       <Card>
@@ -172,7 +176,6 @@ const ProfileSettings = () => {
                 <Camera className="w-6 h-6 text-background" />
               </button>
             </div>
-
             <div className="flex-1 space-y-1 text-center sm:text-left">
               <h2 className="text-xl font-semibold text-foreground">{profile.name}</h2>
               <p className="text-sm text-muted-foreground">{profile.email}</p>
@@ -182,27 +185,47 @@ const ProfileSettings = () => {
         </CardContent>
       </Card>
 
+      {/* Country & Currency */}
+      <Card>
+        <CardContent className="pt-6 space-y-4">
+          <div className="flex items-center gap-3 mb-2">
+            <Globe className="w-5 h-5 text-muted-foreground" />
+            <p className="font-medium text-foreground">Country & Currency</p>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="country">Country</Label>
+            <Select value={profile.country} onValueChange={handleCountryChange}>
+              <SelectTrigger className="h-12">
+                <SelectValue placeholder="Select country" />
+              </SelectTrigger>
+              <SelectContent className="max-h-60">
+                {COUNTRIES.map((c) => (
+                  <SelectItem key={c.name} value={c.name}>
+                    {c.name} ({c.currency})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <span>Currency:</span>
+            <span className="font-semibold text-foreground">{profile.currency}</span>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Appearance */}
       <Card>
         <CardContent className="pt-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              {theme === "dark" ? (
-                <Moon className="w-5 h-5 text-muted-foreground" />
-              ) : (
-                <Sun className="w-5 h-5 text-muted-foreground" />
-              )}
+              {theme === "dark" ? <Moon className="w-5 h-5 text-muted-foreground" /> : <Sun className="w-5 h-5 text-muted-foreground" />}
               <div>
                 <p className="font-medium text-foreground">Dark Mode</p>
-                <p className="text-xs text-muted-foreground">
-                  {theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
-                </p>
+                <p className="text-xs text-muted-foreground">{theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}</p>
               </div>
             </div>
-            <Switch
-              checked={theme === "dark"}
-              onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
-            />
+            <Switch checked={theme === "dark"} onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")} />
           </div>
         </CardContent>
       </Card>
@@ -215,9 +238,7 @@ const ProfileSettings = () => {
           className="w-full flex items-center justify-between px-6 py-4 cursor-pointer hover:bg-accent/50 transition-colors rounded-lg"
         >
           <span className="text-lg font-semibold text-foreground">Change Password</span>
-          <ChevronDown
-            className={`w-5 h-5 text-muted-foreground transition-transform duration-200 ${showPasswordForm ? "rotate-180" : ""}`}
-          />
+          <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform duration-200 ${showPasswordForm ? "rotate-180" : ""}`} />
         </button>
         {showPasswordForm && (
           <CardContent className="pt-0">
@@ -225,71 +246,32 @@ const ProfileSettings = () => {
               <div className="space-y-2">
                 <Label htmlFor="current-password">Current Password</Label>
                 <div className="relative">
-                  <Input
-                    id="current-password"
-                    type={showCurrentPassword ? "text" : "password"}
-                    value={passwords.current}
-                    onChange={(e) => setPasswords({ ...passwords, current: e.target.value })}
-                    placeholder="Enter current password"
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                  >
+                  <Input id="current-password" type={showCurrentPassword ? "text" : "password"} value={passwords.current} onChange={(e) => setPasswords({ ...passwords, current: e.target.value })} placeholder="Enter current password" required />
+                  <button type="button" onClick={() => setShowCurrentPassword(!showCurrentPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
                     {showCurrentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
               </div>
-
               <Separator />
-
               <div className="space-y-2">
                 <Label htmlFor="new-password">New Password</Label>
                 <div className="relative">
-                  <Input
-                    id="new-password"
-                    type={showNewPassword ? "text" : "password"}
-                    value={passwords.new}
-                    onChange={(e) => setPasswords({ ...passwords, new: e.target.value })}
-                    placeholder="Enter new password"
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowNewPassword(!showNewPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                  >
+                  <Input id="new-password" type={showNewPassword ? "text" : "password"} value={passwords.new} onChange={(e) => setPasswords({ ...passwords, new: e.target.value })} placeholder="Enter new password" required />
+                  <button type="button" onClick={() => setShowNewPassword(!showNewPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
                     {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
               </div>
-
               <div className="space-y-2">
                 <Label htmlFor="confirm-password">Confirm New Password</Label>
                 <div className="relative">
-                  <Input
-                    id="confirm-password"
-                    type={showConfirmPassword ? "text" : "password"}
-                    value={passwords.confirm}
-                    onChange={(e) => setPasswords({ ...passwords, confirm: e.target.value })}
-                    placeholder="Confirm new password"
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                  >
+                  <Input id="confirm-password" type={showConfirmPassword ? "text" : "password"} value={passwords.confirm} onChange={(e) => setPasswords({ ...passwords, confirm: e.target.value })} placeholder="Confirm new password" required />
+                  <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
                     {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
               </div>
-
-              <Button type="submit" className="w-full sm:w-auto">
-                Update Password
-              </Button>
+              <Button type="submit" className="w-full sm:w-auto">Update Password</Button>
             </form>
           </CardContent>
         )}
@@ -299,22 +281,13 @@ const ProfileSettings = () => {
       <Button
         variant="outline"
         className="w-full gap-2 text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
-        onClick={async () => {
-          await signOut();
-          navigate("/");
-        }}
+        onClick={async () => { await signOut(); navigate("/"); }}
       >
         <LogOut className="w-4 h-4" />
         Logout
       </Button>
 
-      {/* Avatar Cropper Dialog */}
-      <AvatarCropper
-        imageSrc={rawImage}
-        open={cropperOpen}
-        onClose={() => setCropperOpen(false)}
-        onCropDone={handleCropDone}
-      />
+      <AvatarCropper imageSrc={rawImage} open={cropperOpen} onClose={() => setCropperOpen(false)} onCropDone={handleCropDone} />
     </div>
   );
 };
