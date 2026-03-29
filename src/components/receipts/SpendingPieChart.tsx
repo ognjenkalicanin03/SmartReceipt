@@ -1,11 +1,16 @@
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import { SpendingCategory } from "@/types/receipt";
+import { useAuth } from "@/contexts/AuthContext";
+import { formatAmount } from "@/lib/currency";
 
 interface Props {
   data: SpendingCategory[];
 }
 
 const SpendingPieChart = ({ data }: Props) => {
+  const { profile } = useAuth();
+  const currency = profile.currency;
+
   if (data.length === 0) return null;
 
   return (
@@ -37,7 +42,7 @@ const SpendingPieChart = ({ data }: Props) => {
           <div key={item.name} className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
             <span className="text-xs text-muted-foreground">{item.name}</span>
-            <span className="text-xs font-semibold text-foreground">{item.value.toFixed(0)} RSD</span>
+            <span className="text-xs font-semibold text-foreground">{formatAmount(item.value, currency)}</span>
           </div>
         ))}
       </div>

@@ -1,18 +1,23 @@
 import { DollarSign, Hash, BarChart3 } from "lucide-react";
 import { Receipt } from "@/types/receipt";
+import { useAuth } from "@/contexts/AuthContext";
+import { formatAmount } from "@/lib/currency";
 
 interface Props {
   receipts: Receipt[];
 }
 
 const SummaryCards = ({ receipts }: Props) => {
+  const { profile } = useAuth();
+  const currency = profile.currency;
+
   const total = receipts.reduce((s, r) => s + r.total, 0);
   const avg = receipts.length > 0 ? total / receipts.length : 0;
 
   const cards = [
-    { label: "Total Spent", value: `${total.toFixed(2)} RSD`, icon: DollarSign },
+    { label: "Total Spent", value: formatAmount(total, currency), icon: DollarSign },
     { label: "Receipts", value: receipts.length.toString(), icon: Hash },
-    { label: "Avg / Receipt", value: `${avg.toFixed(2)} RSD`, icon: BarChart3 },
+    { label: "Avg / Receipt", value: formatAmount(avg, currency), icon: BarChart3 },
   ];
 
   return (

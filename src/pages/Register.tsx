@@ -4,15 +4,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Receipt, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { COUNTRIES, getCurrencyForCountry } from "@/lib/currency";
 
 const Register = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [country, setCountry] = useState("Serbia");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
@@ -37,26 +40,32 @@ const Register = () => {
 
     setLoading(true);
 
-    const { error } = await supabase.auth.signUp({
+    const currency = getCurrencyForCountry(country);
+
+    const { data: signUpData, error } = await supabase.auth.signUp({
       email: email.trim(),
       password,
       options: {
-        data: { full_name: name.trim() },
+        data: { full_name: name.trim(), country, currency },
         emailRedirectTo: window.location.origin,
       },
     });
 
-    setLoading(false);
-
     if (error) {
-      toast({
-        title: "Registration failed",
-        description: error.message,
-        variant: "destructive",
-      });
+      setLoading(false);
+      toast({ title: "Registration failed", description: error.message, variant: "destructive" });
       return;
     }
 
+    // Update profile with country/currency after signup
+    if (signUpData.user) {
+      await supabase
+        .from("profiles")
+        .update({ country, currency })
+        .eq("id", signUpData.user.id);
+    }
+
+    setLoading(false);
     toast({
       title: "Check your email!",
       description: "We've sent you a verification link. Please verify your email before logging in.",
@@ -69,25 +78,17 @@ const Register = () => {
         <div className="w-16 h-16 rounded-2xl bg-white/10 backdrop-blur-sm flex items-center justify-center mb-4">
           <Receipt className="w-8 h-8 text-[hsl(193,74%,82%)]" />
         </div>
-        <h1 className="text-2xl font-bold text-white tracking-tight">
-          SmartReceipt
-        </h1>
-        <p className="text-white/60 text-sm mt-1">
-          Create your account
-        </p>
+        <h1 className="text-2xl font-bold text-white tracking-tight">SmartReceipt</h1>
+        <p className="text-white/60 text-sm mt-1">Create your account</p>
       </div>
 
       <Card className="rounded-t-3xl rounded-b-none border-0 shadow-2xl flex-1 min-h-[65vh]">
         <CardContent className="px-6 pt-8 pb-8">
-          <h2 className="text-xl font-semibold text-foreground mb-6">
-            Sign Up
-          </h2>
+          <h2 className="text-xl font-semibold text-foreground mb-6">Sign Up</h2>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="name" className="text-sm font-medium text-muted-foreground">
-                Full name
-              </Label>
+              <Label htmlFor="name" className="text-sm font-medium text-muted-foreground">Full name</Label>
               <Input
                 id="name"
                 type="text"
@@ -100,9 +101,7 @@ const Register = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-medium text-muted-foreground">
-                Email address
-              </Label>
+              <Label htmlFor="email" className="text-sm font-medium text-muted-foreground">Email address</Label>
               <Input
                 id="email"
                 type="email"
@@ -115,9 +114,23 @@ const Register = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-sm font-medium text-muted-foreground">
-                Password
-              </Label>
+              <Label htmlFor="country" className="text-sm font-medium text-muted-foreground">Country</Label>
+              <Select value={country} onValueChange={setCountry}>
+                <SelectTrigger className="h-12 rounded-xl bg-muted/50 border-border/50">
+                  <SelectValue placeholder="Select country" />
+                </SelectTrigger>
+                <SelectContent className="max-h-60">
+                  {COUNTRIES.map((c) => (
+                    <SelectItem key={c.name} value={c.name}>
+                      {c.name} ({c.currency})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="password" className="text-sm font-medium text-muted-foreground">Password</Label>
               <div className="relative">
                 <Input
                   id="password"
@@ -139,9 +152,7 @@ const Register = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword" className="text-sm font-medium text-muted-foreground">
-                Confirm password
-              </Label>
+              <Label htmlFor="confirmPassword" className="text-sm font-medium text-muted-foreground">Confirm password</Label>
               <Input
                 id="confirmPassword"
                 type="password"
@@ -164,10 +175,7 @@ const Register = () => {
 
           <p className="text-center text-sm text-muted-foreground mt-6">
             Already have an account?{" "}
-            <Link
-              to="/"
-              className="font-semibold text-accent hover:text-accent/80 transition-colors"
-            >
+            <Link to="/" className="font-semibold text-accent hover:text-accent/80 transition-colors">
               Log in
             </Link>
           </p>

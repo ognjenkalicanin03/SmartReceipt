@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Receipt as ReceiptIcon, Trash2, PenLine } from "lucide-react";
 import { Receipt } from "@/types/receipt";
+import { useAuth } from "@/contexts/AuthContext";
+import { formatAmount } from "@/lib/currency";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,6 +22,8 @@ interface Props {
 
 const ReceiptCard = ({ receipt, onSelect, onDelete }: Props) => {
   const [showConfirm, setShowConfirm] = useState(false);
+  const { profile } = useAuth();
+  const currency = profile.currency;
 
   return (
     <>
@@ -31,13 +35,8 @@ const ReceiptCard = ({ receipt, onSelect, onDelete }: Props) => {
           <div
             role="button"
             tabIndex={0}
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowConfirm(true);
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") { e.stopPropagation(); setShowConfirm(true); }
-            }}
+            onClick={(e) => { e.stopPropagation(); setShowConfirm(true); }}
+            onKeyDown={(e) => { if (e.key === "Enter") { e.stopPropagation(); setShowConfirm(true); } }}
             className="absolute top-3 right-3 p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors z-10"
           >
             <Trash2 className="w-4 h-4" />
@@ -54,13 +53,13 @@ const ReceiptCard = ({ receipt, onSelect, onDelete }: Props) => {
               <p className="text-xs text-muted-foreground">{receipt.date}</p>
             </div>
           </div>
-          <span className="font-bold text-foreground">{receipt.total.toFixed(2)} RSD</span>
+          <span className="font-bold text-foreground">{formatAmount(receipt.total, currency)}</span>
         </div>
         <div className="mt-2 ml-[52px] space-y-0.5">
           {receipt.items.slice(0, 3).map((item) => (
             <div key={item.name} className="flex justify-between text-xs text-muted-foreground">
               <span>{item.name}</span>
-              <span className="font-medium text-foreground/70">{item.price.toFixed(2)} RSD</span>
+              <span className="font-medium text-foreground/70">{formatAmount(item.price, currency)}</span>
             </div>
           ))}
         </div>
@@ -71,9 +70,7 @@ const ReceiptCard = ({ receipt, onSelect, onDelete }: Props) => {
             </span>
           )}
           {receipt.categories.map((c) => (
-            <span key={c} className="px-2 py-0.5 rounded-full bg-secondary/50 text-[10px] font-medium text-secondary-foreground">
-              {c}
-            </span>
+            <span key={c} className="px-2 py-0.5 rounded-full bg-secondary/50 text-[10px] font-medium text-secondary-foreground">{c}</span>
           ))}
         </div>
       </button>
@@ -88,10 +85,7 @@ const ReceiptCard = ({ receipt, onSelect, onDelete }: Props) => {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={() => onDelete?.(receipt.id)}
-            >
+            <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={() => onDelete?.(receipt.id)}>
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>

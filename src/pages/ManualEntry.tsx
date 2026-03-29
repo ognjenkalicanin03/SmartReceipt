@@ -4,6 +4,7 @@ import { format } from "date-fns";
 import { CalendarIcon, Sparkles, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { getCountryInfo } from "@/lib/currency";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,7 +17,8 @@ const CATEGORIES = ["Food", "Drinks", "Snacks", "Hygiene", "Transport", "Beauty"
 
 const ManualEntry = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
+  const currencyInfo = getCountryInfo(profile.country);
   const [quickInput, setQuickInput] = useState("");
   const [parsing, setParsing] = useState(false);
   const [title, setTitle] = useState("");
@@ -159,7 +161,7 @@ const ManualEntry = () => {
 
         {/* Amount */}
         <div className="space-y-2">
-          <Label htmlFor="amount">Amount (RSD)</Label>
+          <Label htmlFor="amount">Amount ({currencyInfo.currency})</Label>
           <Input
             id="amount"
             type="number"
