@@ -76,6 +76,7 @@ export type Database = {
           date: string
           id: string
           image_url: string | null
+          is_manual: boolean
           store: string
           total: number
           user_id: string
@@ -85,6 +86,7 @@ export type Database = {
           date?: string
           id?: string
           image_url?: string | null
+          is_manual?: boolean
           store?: string
           total?: number
           user_id: string
@@ -94,6 +96,7 @@ export type Database = {
           date?: string
           id?: string
           image_url?: string | null
+          is_manual?: boolean
           store?: string
           total?: number
           user_id?: string
