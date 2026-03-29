@@ -62,6 +62,12 @@ const Home = () => {
                   <Upload className="w-4 h-4" />
                   Or upload from gallery
                 </button>
+                <button
+                  onClick={() => navigate("/manual-entry")}
+                  className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  ✏️ Manual entry
+                </button>
               </div>
             </div>
 
@@ -94,6 +100,12 @@ const Home = () => {
               >
                 <Upload className="w-4 h-4" />
                 Or upload from gallery
+              </button>
+              <button
+                onClick={() => navigate("/manual-entry")}
+                className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                ✏️ Manual entry
               </button>
             </div>
           </div>

@@ -54,6 +54,7 @@ export function useReceipts() {
         categories: [...new Set(items.map((i: any) => i.category || "Other"))],
         image_url: r.image_url,
         created_at: r.created_at,
+        is_manual: r.is_manual,
       };
     });
 
