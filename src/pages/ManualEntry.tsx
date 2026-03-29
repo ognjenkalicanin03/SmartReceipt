@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Sparkles, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,8 @@ const CATEGORIES = ["Food", "Drinks", "Snacks", "Hygiene", "Transport", "Beauty"
 const ManualEntry = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [quickInput, setQuickInput] = useState("");
+  const [parsing, setParsing] = useState(false);
   const [title, setTitle] = useState("");
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState<string>("Other");
@@ -30,6 +32,40 @@ const ManualEntry = () => {
     if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) e.amount = "Enter a valid amount";
     setErrors(e);
     return Object.keys(e).length === 0;
+  };
+
+  const handleQuickParse = useCallback(async () => {
+    const text = quickInput.trim();
+    if (!text) return;
+
+    setParsing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("parse-expense", {
+        body: { text },
+      });
+
+      if (error) throw error;
+
+      if (data?.title) setTitle(data.title);
+      if (data?.amount && data.amount > 0) setAmount(String(data.amount));
+      if (data?.category && CATEGORIES.includes(data.category)) {
+        setCategory(data.category);
+      }
+      setErrors({});
+      toast.success("Fields auto-filled!");
+    } catch (err) {
+      console.error("Quick parse failed:", err);
+      toast.error("Could not parse input. Please fill in manually.");
+    } finally {
+      setParsing(false);
+    }
+  }, [quickInput]);
+
+  const handleQuickInputKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleQuickParse();
+    }
   };
 
   const handleSubmit = async () => {
@@ -70,6 +106,43 @@ const ManualEntry = () => {
     <div className="flex-1 pb-24 md:pb-8">
       <div className="max-w-md mx-auto px-4 sm:px-6 py-8 space-y-6">
         <h1 className="text-2xl font-bold text-foreground">Add Expense</h1>
+
+        {/* Quick Add AI */}
+        <div className="space-y-2">
+          <Label htmlFor="quick-add" className="flex items-center gap-1.5">
+            <Sparkles className="h-4 w-4 text-primary" />
+            Quick add (AI)
+          </Label>
+          <div className="flex gap-2">
+            <Input
+              id="quick-add"
+              placeholder='e.g. "nails 2000" or "taxi 500"'
+              value={quickInput}
+              onChange={(e) => setQuickInput(e.target.value)}
+              onKeyDown={handleQuickInputKeyDown}
+              className="h-12 text-base flex-1"
+              disabled={parsing}
+            />
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-12 w-12 shrink-0"
+              onClick={handleQuickParse}
+              disabled={parsing || !quickInput.trim()}
+            >
+              {parsing ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Sparkles className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Type a short description and press Enter to auto-fill the form.
+          </p>
+        </div>
+
+        <div className="border-t border-border" />
 
         {/* Title */}
         <div className="space-y-2">
