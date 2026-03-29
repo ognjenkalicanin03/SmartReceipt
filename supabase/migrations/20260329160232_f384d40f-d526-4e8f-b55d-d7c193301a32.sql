@@ -1,0 +1,1 @@
+ALTER TABLE public.receipts ADD COLUMN is_manual boolean NOT NULL DEFAULT false;

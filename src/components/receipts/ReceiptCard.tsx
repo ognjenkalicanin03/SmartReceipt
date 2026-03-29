@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Receipt as ReceiptIcon, Trash2 } from "lucide-react";
+import { Receipt as ReceiptIcon, Trash2, PenLine } from "lucide-react";
 import { Receipt } from "@/types/receipt";
 import {
   AlertDialog,
@@ -64,7 +64,12 @@ const ReceiptCard = ({ receipt, onSelect, onDelete }: Props) => {
             </div>
           ))}
         </div>
-        <div className="flex gap-1.5 mt-2 ml-[52px]">
+        <div className="flex gap-1.5 mt-2 ml-[52px] flex-wrap">
+          {receipt.is_manual && (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/15 text-[10px] font-medium text-primary">
+              <PenLine className="w-3 h-3" /> Manual
+            </span>
+          )}
           {receipt.categories.map((c) => (
             <span key={c} className="px-2 py-0.5 rounded-full bg-secondary/50 text-[10px] font-medium text-secondary-foreground">
               {c}

@@ -13,6 +13,7 @@ export interface Receipt {
   categories: string[];
   image_url?: string | null;
   created_at?: string;
+  is_manual?: boolean;
 }
 
 export interface SpendingCategory {
