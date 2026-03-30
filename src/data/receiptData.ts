@@ -107,20 +107,25 @@ export function getInsights(receipts: Receipt[]): Insight[] {
     });
   }
 
-  // 4 — Simulated trend (week-over-week change)
-  const weekTotal = allReceipts.slice(0, 4).reduce((s, r) => s + r.total, 0);
-  const prevWeekTotal = allReceipts.slice(4).reduce((s, r) => s + r.total, 0);
-  if (prevWeekTotal > 0) {
-    const change = Math.round(((weekTotal - prevWeekTotal) / prevWeekTotal) * 100);
-    const direction = change >= 0 ? "up" : "down";
-    const absChange = Math.abs(change);
-    insights.push({
-      icon: direction === "up" ? "📈" : "📉",
-      text: `Spending ${direction === "up" ? "increased" : "decreased"} by ${absChange}% compared to last period`,
-      highlightedText: { before: `Spending ${direction === "up" ? "increased" : "decreased"} by`, value: `${absChange}%`, after: "vs. last period" },
-      trend: direction,
-      type: "trend",
-    });
+  // 4 — Trend (week-over-week from actual data)
+  if (receipts.length >= 2) {
+    const now = new Date();
+    const weekAgo = new Date(now); weekAgo.setDate(weekAgo.getDate() - 7);
+    const twoWeeksAgo = new Date(now); twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+    const thisWeek = receipts.filter((r) => new Date(r.created_at || "") >= weekAgo).reduce((s, r) => s + r.total, 0);
+    const lastWeek = receipts.filter((r) => { const d = new Date(r.created_at || ""); return d >= twoWeeksAgo && d < weekAgo; }).reduce((s, r) => s + r.total, 0);
+    if (lastWeek > 0) {
+      const change = Math.round(((thisWeek - lastWeek) / lastWeek) * 100);
+      const direction = change >= 0 ? "up" : "down";
+      const absChange = Math.abs(change);
+      insights.push({
+        icon: direction === "up" ? "📈" : "📉",
+        text: `Spending ${direction === "up" ? "increased" : "decreased"} by ${absChange}% compared to last week`,
+        highlightedText: { before: `Spending ${direction === "up" ? "increased" : "decreased"} by`, value: `${absChange}%`, after: "vs. last week" },
+        trend: direction,
+        type: "trend",
+      });
+    }
   }
 
   // 5 — Highest single receipt
