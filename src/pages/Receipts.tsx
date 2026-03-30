@@ -4,6 +4,7 @@ import { useReceipts } from "@/hooks/useReceipts";
 import { getSpendingData, getInsights } from "@/data/receiptData";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatAmount } from "@/lib/currency";
+import { getReceiptDate } from "@/lib/dateUtils";
 import { supabase } from "@/integrations/supabase/client";
 import SummaryCards from "@/components/receipts/SummaryCards";
 import SpendingPieChart from "@/components/receipts/SpendingPieChart";
