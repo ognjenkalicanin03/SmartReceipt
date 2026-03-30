@@ -119,12 +119,13 @@ serve(async (req) => {
                   text: `Extract all items from this receipt image. Return a JSON object with this exact structure:
 {
   "store": "Store Name",
-  "date": "Mon DD, YYYY",
+  "date": "YYYY-MM-DD",
   "items": [
     { "name": "Item name", "price": 0.00, "category": "Food|Drinks|Snacks|Hygiene|Household|Other" }
   ],
   "total": 0.00
 }
+The date MUST be in YYYY-MM-DD format (e.g. "2026-03-30"). If year has only 2 digits, assume 2000s (e.g. "26" means "2026").
 Assign each item one of these categories: Food, Drinks, Snacks, Hygiene, Household, Other.
 Return ONLY the JSON, no other text.`,
                 },
