@@ -4,6 +4,7 @@ import { useReceipts } from "@/hooks/useReceipts";
 import { getSpendingData, getInsights } from "@/data/receiptData";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatAmount } from "@/lib/currency";
+import { getReceiptDate } from "@/lib/dateUtils";
 import { supabase } from "@/integrations/supabase/client";
 import SummaryCards from "@/components/receipts/SummaryCards";
 import SpendingPieChart from "@/components/receipts/SpendingPieChart";
@@ -30,15 +31,20 @@ const Receipts = () => {
   });
 
   const filtered = useMemo(() => {
+    const now = new Date();
     let result = receipts;
     if (activeTime === "Week") {
-      const weekAgo = new Date();
-      weekAgo.setDate(weekAgo.getDate() - 7);
-      result = result.filter((r) => new Date(r.created_at || "") >= weekAgo);
+      const cutoff = new Date(now.getTime() - 7 * 86400000);
+      result = result.filter((r) => {
+        const d = getReceiptDate(r);
+        return d !== null && d >= cutoff && d <= now;
+      });
     } else if (activeTime === "Month") {
-      const monthAgo = new Date();
-      monthAgo.setMonth(monthAgo.getMonth() - 1);
-      result = result.filter((r) => new Date(r.created_at || "") >= monthAgo);
+      const cutoff = new Date(now.getTime() - 30 * 86400000);
+      result = result.filter((r) => {
+        const d = getReceiptDate(r);
+        return d !== null && d >= cutoff && d <= now;
+      });
     }
     if (activeCategory !== "All") {
       result = result.filter((r) => r.categories.includes(activeCategory));
@@ -58,15 +64,16 @@ const Receipts = () => {
   // Weekly data calculation
   const weeklyData = useMemo(() => {
     const now = new Date();
-    const weekAgo = new Date(now);
-    weekAgo.setDate(weekAgo.getDate() - 7);
-    const twoWeeksAgo = new Date(now);
-    twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+    const weekAgo = new Date(now.getTime() - 7 * 86400000);
+    const twoWeeksAgo = new Date(now.getTime() - 14 * 86400000);
 
-    const thisWeekReceipts = receipts.filter((r) => new Date(r.created_at || "") >= weekAgo);
+    const thisWeekReceipts = receipts.filter((r) => {
+      const d = getReceiptDate(r);
+      return d !== null && d >= weekAgo && d <= now;
+    });
     const lastWeekReceipts = receipts.filter((r) => {
-      const d = new Date(r.created_at || "");
-      return d >= twoWeeksAgo && d < weekAgo;
+      const d = getReceiptDate(r);
+      return d !== null && d >= twoWeeksAgo && d < weekAgo;
     });
 
     const thisWeekTotal = thisWeekReceipts.reduce((s, r) => s + r.total, 0);
@@ -95,11 +102,12 @@ const Receipts = () => {
     setWeeklyAI((prev) => ({ ...prev, loading: true }));
 
     try {
+      const now = new Date();
+      const weekAgoCutoff = new Date(now.getTime() - 7 * 86400000);
       const catSpending = getSpendingData(
         receipts.filter((r) => {
-          const weekAgo = new Date();
-          weekAgo.setDate(weekAgo.getDate() - 7);
-          return new Date(r.created_at || "") >= weekAgo;
+          const d = getReceiptDate(r);
+          return d !== null && d >= weekAgoCutoff && d <= now;
         })
       );
 
