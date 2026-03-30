@@ -64,15 +64,16 @@ const Receipts = () => {
   // Weekly data calculation
   const weeklyData = useMemo(() => {
     const now = new Date();
-    const weekAgo = new Date(now);
-    weekAgo.setDate(weekAgo.getDate() - 7);
-    const twoWeeksAgo = new Date(now);
-    twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+    const weekAgo = new Date(now.getTime() - 7 * 86400000);
+    const twoWeeksAgo = new Date(now.getTime() - 14 * 86400000);
 
-    const thisWeekReceipts = receipts.filter((r) => new Date(r.created_at || "") >= weekAgo);
+    const thisWeekReceipts = receipts.filter((r) => {
+      const d = getReceiptDate(r);
+      return d !== null && d >= weekAgo && d <= now;
+    });
     const lastWeekReceipts = receipts.filter((r) => {
-      const d = new Date(r.created_at || "");
-      return d >= twoWeeksAgo && d < weekAgo;
+      const d = getReceiptDate(r);
+      return d !== null && d >= twoWeeksAgo && d < weekAgo;
     });
 
     const thisWeekTotal = thisWeekReceipts.reduce((s, r) => s + r.total, 0);
