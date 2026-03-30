@@ -36,10 +36,20 @@ export function getSpendingData(receipts: Receipt[]): SpendingCategory[] {
     Health: "hsl(0, 65%, 60%)",
     Clothing: "hsl(280, 45%, 60%)",
     Transport: "hsl(50, 70%, 50%)",
+    Beauty: "hsl(310, 55%, 60%)",
   };
+  // Sum at item level for accurate per-category totals
   receipts.forEach((r) => {
-    const share = r.total / r.categories.length;
-    r.categories.forEach((c) => { catMap[c] = (catMap[c] || 0) + share; });
+    if (r.items && r.items.length > 0) {
+      r.items.forEach((item) => {
+        const cat = item.category || "Other";
+        catMap[cat] = (catMap[cat] || 0) + item.price;
+      });
+    } else {
+      // Fallback for receipts without items
+      const cat = r.categories[0] || "Other";
+      catMap[cat] = (catMap[cat] || 0) + r.total;
+    }
   });
   return Object.entries(catMap).map(([name, value]) => ({
     name,
