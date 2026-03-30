@@ -140,6 +140,32 @@ const Receipts = () => {
     };
   }, [receipts, predictionAI]);
 
+  // Spending alert calculation
+  const spendingAlertData = useMemo(() => {
+    const now = new Date();
+    const threeDaysAgo = new Date(now.getTime() - 3 * 86400000);
+    const weekAgo = new Date(now.getTime() - 7 * 86400000);
+
+    const last3DaysTotal = receipts
+      .filter((r) => { const d = getReceiptDate(r); return d !== null && d >= threeDaysAgo && d <= now; })
+      .reduce((s, r) => s + r.total, 0);
+
+    const last7DaysTotal = receipts
+      .filter((r) => { const d = getReceiptDate(r); return d !== null && d >= weekAgo && d <= now; })
+      .reduce((s, r) => s + r.total, 0);
+
+    const averageDaily = last7DaysTotal / 7;
+    const triggered = averageDaily > 0 && last3DaysTotal > (averageDaily * 3 * 1.5);
+
+    return {
+      triggered,
+      last3DaysTotal: Math.round(last3DaysTotal),
+      averageDaily: Math.round(averageDaily),
+      explanation: spendingAlertAI.explanation,
+      loading: spendingAlertAI.loading,
+    };
+  }, [receipts, spendingAlertAI]);
+
   const loadWeeklyAI = useCallback(async () => {
     if (weeklyAI.loading || weeklyAI.explanation) return;
     setWeeklyAI((prev) => ({ ...prev, loading: true }));
