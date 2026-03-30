@@ -281,9 +281,11 @@ const Receipts = () => {
             insights={insights}
             weeklyData={weeklyData}
             predictionData={predictionData}
+            spendingAlertData={spendingAlertData}
             currency={currency}
             onLoadWeeklyAI={loadWeeklyAI}
             onLoadPredictionAI={loadPredictionAI}
+            onLoadSpendingAlertAI={loadSpendingAlertAI}
           />
         )}
         <FiltersBar
