@@ -29,6 +29,10 @@ const Receipts = () => {
     suggestion: "",
     loading: false,
   });
+  const [predictionAI, setPredictionAI] = useState<{ explanation: string; loading: boolean }>({
+    explanation: "",
+    loading: false,
+  });
 
   const filtered = useMemo(() => {
     const now = new Date();
@@ -97,6 +101,41 @@ const Receipts = () => {
     };
   }, [receipts, weeklyAI]);
 
+  // Prediction data calculation
+  const predictionData = useMemo(() => {
+    const now = new Date();
+    const weekAgo = new Date(now.getTime() - 7 * 86400000);
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    const dayOfMonth = now.getDate();
+    const daysLeft = daysInMonth - dayOfMonth;
+
+    const last7DaysReceipts = receipts.filter((r) => {
+      const d = getReceiptDate(r);
+      return d !== null && d >= weekAgo && d <= now;
+    });
+
+    const last7DaysTotal = last7DaysReceipts.reduce((s, r) => s + r.total, 0);
+    const averageDaily = last7DaysTotal / 7;
+
+    const currentMonthReceipts = receipts.filter((r) => {
+      const d = getReceiptDate(r);
+      return d !== null && d >= monthStart && d <= now;
+    });
+    const currentMonthTotal = currentMonthReceipts.reduce((s, r) => s + r.total, 0);
+
+    const predictedTotal = Math.round(averageDaily * daysInMonth);
+
+    return {
+      predictedTotal,
+      averageDaily: Math.round(averageDaily),
+      currentMonthTotal: Math.round(currentMonthTotal),
+      daysLeft,
+      explanation: predictionAI.explanation,
+      loading: predictionAI.loading,
+    };
+  }, [receipts, predictionAI]);
+
   const loadWeeklyAI = useCallback(async () => {
     if (weeklyAI.loading || weeklyAI.explanation) return;
     setWeeklyAI((prev) => ({ ...prev, loading: true }));
@@ -138,6 +177,35 @@ const Receipts = () => {
     }
   }, [weeklyAI, receipts, weeklyData, currency]);
 
+  const loadPredictionAI = useCallback(async () => {
+    if (predictionAI.loading || predictionAI.explanation) return;
+    setPredictionAI((prev) => ({ ...prev, loading: true }));
+
+    try {
+      const { data, error } = await supabase.functions.invoke("spending-prediction", {
+        body: {
+          averageDaily: predictionData.averageDaily,
+          currentTotal: predictionData.currentMonthTotal,
+          predictedTotal: predictionData.predictedTotal,
+          currency,
+          daysLeft: predictionData.daysLeft,
+        },
+      });
+
+      if (error) throw error;
+      setPredictionAI({
+        explanation: data.explanation || "",
+        loading: false,
+      });
+    } catch (e) {
+      console.error("Prediction AI error:", e);
+      setPredictionAI({
+        explanation: "Your recent spending trend suggests steady monthly expenses.",
+        loading: false,
+      });
+    }
+  }, [predictionAI, predictionData, currency]);
+
   if (loading) {
     return (
       <div className="flex-1 flex items-center justify-center min-h-[50vh]">
@@ -155,8 +223,10 @@ const Receipts = () => {
           <InsightsList
             insights={insights}
             weeklyData={weeklyData}
+            predictionData={predictionData}
             currency={currency}
             onLoadWeeklyAI={loadWeeklyAI}
+            onLoadPredictionAI={loadPredictionAI}
           />
         )}
         <FiltersBar

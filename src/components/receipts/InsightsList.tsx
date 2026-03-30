@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { TrendingUp, TrendingDown, AlertTriangle, Trophy, CreditCard, BarChart3, ArrowUpRight, Calendar, Loader2 } from "lucide-react";
+import { TrendingUp, TrendingDown, AlertTriangle, Trophy, CreditCard, BarChart3, ArrowUpRight, Calendar, Loader2, Target } from "lucide-react";
 import { Insight, InsightType, Receipt, SpendingCategory } from "@/types/receipt";
 import { cn } from "@/lib/utils";
 import { formatAmount } from "@/lib/currency";
@@ -16,11 +16,22 @@ interface WeeklyData {
   loading: boolean;
 }
 
+interface PredictionData {
+  predictedTotal: number;
+  averageDaily: number;
+  currentMonthTotal: number;
+  daysLeft: number;
+  explanation: string;
+  loading: boolean;
+}
+
 interface Props {
   insights: Insight[];
   weeklyData?: WeeklyData;
+  predictionData?: PredictionData;
   currency: string;
   onLoadWeeklyAI?: () => void;
+  onLoadPredictionAI?: () => void;
 }
 
 const typeIcon: Record<InsightType, React.ReactNode> = {
@@ -29,6 +40,7 @@ const typeIcon: Record<InsightType, React.ReactNode> = {
   "top-item": <Trophy className="w-4 h-4" />,
   impulse: <AlertTriangle className="w-4 h-4" />,
   "category-high": <CreditCard className="w-4 h-4" />,
+  prediction: <TrendingUp className="w-4 h-4" />,
 };
 
 const typeAccent: Record<InsightType, string> = {
@@ -37,12 +49,13 @@ const typeAccent: Record<InsightType, string> = {
   "top-item": "bg-primary/10 text-primary border-primary/20",
   impulse: "bg-destructive/10 text-destructive border-destructive/20",
   "category-high": "bg-muted text-muted-foreground border-border/50",
+  prediction: "bg-primary/10 text-primary border-primary/20",
 };
 
-const InsightsList = ({ insights, weeklyData, currency, onLoadWeeklyAI }: Props) => {
+const InsightsList = ({ insights, weeklyData, predictionData, currency, onLoadWeeklyAI, onLoadPredictionAI }: Props) => {
   const [reportOpen, setReportOpen] = useState(false);
 
-  if (insights.length === 0 && !weeklyData) return null;
+  if (insights.length === 0 && !weeklyData && !predictionData) return null;
 
   const handleWeeklyClick = () => {
     if (weeklyData && !weeklyData.explanation && !weeklyData.loading && onLoadWeeklyAI) {
@@ -106,6 +119,47 @@ const InsightsList = ({ insights, weeklyData, currency, onLoadWeeklyAI }: Props)
             {direction === "down" && <TrendingDown className="w-4 h-4 text-accent" />}
           </div>
         </button>
+      )}
+
+      {/* Spending Prediction Card */}
+      {predictionData && predictionData.predictedTotal > 0 && (
+        <div
+          onClick={() => {
+            if (!predictionData.explanation && !predictionData.loading && onLoadPredictionAI) {
+              onLoadPredictionAI();
+            }
+          }}
+          className={cn(
+            "rounded-2xl p-5 shadow-md border flex items-start gap-3 transition-all duration-300 cursor-pointer",
+            "bg-gradient-to-br from-accent/8 to-primary/5 border-accent/20 hover:shadow-lg hover:border-accent/30"
+          )}
+        >
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-accent/15 text-accent border border-accent/20">
+            <Target className="w-5 h-5" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="px-1.5 py-0.5 rounded bg-accent/15 text-[9px] font-bold text-accent tracking-wide uppercase">Prediction</span>
+            </div>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              You are likely to spend around{" "}
+              <span className="font-bold text-foreground">{formatAmount(predictionData.predictedTotal, currency)}</span>{" "}
+              this month
+            </p>
+            {predictionData.loading ? (
+              <div className="flex items-center gap-1.5 mt-1 text-xs text-muted-foreground/70">
+                <Loader2 className="w-3 h-3 animate-spin" /> Analyzing…
+              </div>
+            ) : predictionData.explanation ? (
+              <p className="text-xs mt-1 text-muted-foreground/80">{predictionData.explanation}</p>
+            ) : (
+              <p className="text-xs mt-1 text-muted-foreground/70">Based on your recent spending patterns</p>
+            )}
+          </div>
+          <div className="shrink-0 mt-1">
+            <TrendingUp className="w-4 h-4 text-accent" />
+          </div>
+        </div>
       )}
 
       {/* Other insight cards */}
