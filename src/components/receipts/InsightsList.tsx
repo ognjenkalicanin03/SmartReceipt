@@ -52,10 +52,10 @@ const typeAccent: Record<InsightType, string> = {
   prediction: "bg-primary/10 text-primary border-primary/20",
 };
 
-const InsightsList = ({ insights, weeklyData, currency, onLoadWeeklyAI }: Props) => {
+const InsightsList = ({ insights, weeklyData, predictionData, currency, onLoadWeeklyAI, onLoadPredictionAI }: Props) => {
   const [reportOpen, setReportOpen] = useState(false);
 
-  if (insights.length === 0 && !weeklyData) return null;
+  if (insights.length === 0 && !weeklyData && !predictionData) return null;
 
   const handleWeeklyClick = () => {
     if (weeklyData && !weeklyData.explanation && !weeklyData.loading && onLoadWeeklyAI) {
