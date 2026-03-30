@@ -177,6 +177,35 @@ const Receipts = () => {
     }
   }, [weeklyAI, receipts, weeklyData, currency]);
 
+  const loadPredictionAI = useCallback(async () => {
+    if (predictionAI.loading || predictionAI.explanation) return;
+    setPredictionAI((prev) => ({ ...prev, loading: true }));
+
+    try {
+      const { data, error } = await supabase.functions.invoke("spending-prediction", {
+        body: {
+          averageDaily: predictionData.averageDaily,
+          currentTotal: predictionData.currentMonthTotal,
+          predictedTotal: predictionData.predictedTotal,
+          currency,
+          daysLeft: predictionData.daysLeft,
+        },
+      });
+
+      if (error) throw error;
+      setPredictionAI({
+        explanation: data.explanation || "",
+        loading: false,
+      });
+    } catch (e) {
+      console.error("Prediction AI error:", e);
+      setPredictionAI({
+        explanation: "Your recent spending trend suggests steady monthly expenses.",
+        loading: false,
+      });
+    }
+  }, [predictionAI, predictionData, currency]);
+
   if (loading) {
     return (
       <div className="flex-1 flex items-center justify-center min-h-[50vh]">
