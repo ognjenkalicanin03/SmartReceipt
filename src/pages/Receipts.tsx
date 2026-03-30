@@ -102,11 +102,12 @@ const Receipts = () => {
     setWeeklyAI((prev) => ({ ...prev, loading: true }));
 
     try {
+      const now = new Date();
+      const weekAgoCutoff = new Date(now.getTime() - 7 * 86400000);
       const catSpending = getSpendingData(
         receipts.filter((r) => {
-          const weekAgo = new Date();
-          weekAgo.setDate(weekAgo.getDate() - 7);
-          return new Date(r.created_at || "") >= weekAgo;
+          const d = getReceiptDate(r);
+          return d !== null && d >= weekAgoCutoff && d <= now;
         })
       );
 
