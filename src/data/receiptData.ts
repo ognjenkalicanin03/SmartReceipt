@@ -1,4 +1,5 @@
 import { Receipt, SpendingCategory, Insight } from "@/types/receipt";
+import { getReceiptDate } from "@/lib/dateUtils";
 
 export const allReceipts: Receipt[] = [
   { id: "mock-1", store: "Walmart", date: "Mar 26, 2026", total: 48.92, items: [{ name: "Milk", price: 4.29 }, { name: "Bread", price: 3.49 }, { name: "Eggs", price: 5.99 }], categories: ["Food"] },
