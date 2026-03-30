@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { TrendingUp, TrendingDown, AlertTriangle, Trophy, CreditCard, BarChart3, ArrowUpRight, Calendar, Loader2, Target } from "lucide-react";
+import { TrendingUp, TrendingDown, AlertTriangle, Trophy, CreditCard, BarChart3, ArrowUpRight, Calendar, Loader2, Target, ShieldAlert } from "lucide-react";
 import { Insight, InsightType, Receipt, SpendingCategory } from "@/types/receipt";
 import { cn } from "@/lib/utils";
 import { formatAmount } from "@/lib/currency";
@@ -25,37 +25,45 @@ interface PredictionData {
   loading: boolean;
 }
 
+interface SpendingAlertData {
+  triggered: boolean;
+  last3DaysTotal: number;
+  averageDaily: number;
+  explanation: string;
+  loading: boolean;
+}
+
 interface Props {
   insights: Insight[];
   weeklyData?: WeeklyData;
   predictionData?: PredictionData;
+  spendingAlertData?: SpendingAlertData;
   currency: string;
   onLoadWeeklyAI?: () => void;
   onLoadPredictionAI?: () => void;
+  onLoadSpendingAlertAI?: () => void;
 }
 
 const typeIcon: Record<InsightType, React.ReactNode> = {
   distribution: <BarChart3 className="w-4 h-4" />,
-  trend: <ArrowUpRight className="w-4 h-4" />,
   "top-item": <Trophy className="w-4 h-4" />,
-  impulse: <AlertTriangle className="w-4 h-4" />,
   "category-high": <CreditCard className="w-4 h-4" />,
   prediction: <TrendingUp className="w-4 h-4" />,
+  "spending-alert": <ShieldAlert className="w-4 h-4" />,
 };
 
 const typeAccent: Record<InsightType, string> = {
   distribution: "bg-accent/15 text-accent border-accent/20",
-  trend: "bg-secondary/20 text-secondary-foreground border-secondary/30",
   "top-item": "bg-primary/10 text-primary border-primary/20",
-  impulse: "bg-destructive/10 text-destructive border-destructive/20",
   "category-high": "bg-muted text-muted-foreground border-border/50",
   prediction: "bg-primary/10 text-primary border-primary/20",
+  "spending-alert": "bg-destructive/10 text-destructive border-destructive/20",
 };
 
-const InsightsList = ({ insights, weeklyData, predictionData, currency, onLoadWeeklyAI, onLoadPredictionAI }: Props) => {
+const InsightsList = ({ insights, weeklyData, predictionData, spendingAlertData, currency, onLoadWeeklyAI, onLoadPredictionAI, onLoadSpendingAlertAI }: Props) => {
   const [reportOpen, setReportOpen] = useState(false);
 
-  if (insights.length === 0 && !weeklyData && !predictionData) return null;
+  if (insights.length === 0 && !weeklyData && !predictionData && !spendingAlertData?.triggered) return null;
 
   const handleWeeklyClick = () => {
     if (weeklyData && !weeklyData.explanation && !weeklyData.loading && onLoadWeeklyAI) {
@@ -75,7 +83,48 @@ const InsightsList = ({ insights, weeklyData, predictionData, currency, onLoadWe
         <span className="px-2 py-0.5 rounded-full bg-accent/20 text-[10px] font-bold text-accent tracking-wide uppercase">AI</span>
       </div>
 
-      {/* Weekly Insight Card — first position, more prominent */}
+      {/* Spending Alert — Danger Zone */}
+      {spendingAlertData?.triggered && (
+        <div
+          onClick={() => {
+            if (!spendingAlertData.explanation && !spendingAlertData.loading && onLoadSpendingAlertAI) {
+              onLoadSpendingAlertAI();
+            }
+          }}
+          className={cn(
+            "rounded-2xl p-5 shadow-md border flex items-start gap-3 transition-all duration-300 cursor-pointer",
+            "bg-gradient-to-br from-destructive/10 to-destructive/5 border-destructive/30 hover:shadow-lg hover:border-destructive/40"
+          )}
+        >
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-destructive/15 text-destructive border border-destructive/25">
+            <ShieldAlert className="w-5 h-5" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="px-1.5 py-0.5 rounded bg-destructive/15 text-[9px] font-bold text-destructive tracking-wide uppercase">Alert</span>
+            </div>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              You are spending{" "}
+              <span className="font-bold text-destructive">faster than usual</span>{" "}
+              this week
+            </p>
+            {spendingAlertData.loading ? (
+              <div className="flex items-center gap-1.5 mt-1 text-xs text-muted-foreground/70">
+                <Loader2 className="w-3 h-3 animate-spin" /> Analyzing…
+              </div>
+            ) : spendingAlertData.explanation ? (
+              <p className="text-xs mt-1 text-muted-foreground/80">{spendingAlertData.explanation}</p>
+            ) : (
+              <p className="text-xs mt-1 text-muted-foreground/70">Spending increased significantly in the last few days</p>
+            )}
+          </div>
+          <div className="shrink-0 mt-1">
+            <AlertTriangle className="w-4 h-4 text-destructive" />
+          </div>
+        </div>
+      )}
+
+      {/* Weekly Insight Card */}
       {weeklyData && (
         <button
           onClick={handleWeeklyClick}

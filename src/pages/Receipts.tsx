@@ -33,6 +33,10 @@ const Receipts = () => {
     explanation: "",
     loading: false,
   });
+  const [spendingAlertAI, setSpendingAlertAI] = useState<{ explanation: string; loading: boolean }>({
+    explanation: "",
+    loading: false,
+  });
 
   const filtered = useMemo(() => {
     const now = new Date();
@@ -136,6 +140,32 @@ const Receipts = () => {
     };
   }, [receipts, predictionAI]);
 
+  // Spending alert calculation
+  const spendingAlertData = useMemo(() => {
+    const now = new Date();
+    const threeDaysAgo = new Date(now.getTime() - 3 * 86400000);
+    const weekAgo = new Date(now.getTime() - 7 * 86400000);
+
+    const last3DaysTotal = receipts
+      .filter((r) => { const d = getReceiptDate(r); return d !== null && d >= threeDaysAgo && d <= now; })
+      .reduce((s, r) => s + r.total, 0);
+
+    const last7DaysTotal = receipts
+      .filter((r) => { const d = getReceiptDate(r); return d !== null && d >= weekAgo && d <= now; })
+      .reduce((s, r) => s + r.total, 0);
+
+    const averageDaily = last7DaysTotal / 7;
+    const triggered = averageDaily > 0 && last3DaysTotal > (averageDaily * 3 * 1.5);
+
+    return {
+      triggered,
+      last3DaysTotal: Math.round(last3DaysTotal),
+      averageDaily: Math.round(averageDaily),
+      explanation: spendingAlertAI.explanation,
+      loading: spendingAlertAI.loading,
+    };
+  }, [receipts, spendingAlertAI]);
+
   const loadWeeklyAI = useCallback(async () => {
     if (weeklyAI.loading || weeklyAI.explanation) return;
     setWeeklyAI((prev) => ({ ...prev, loading: true }));
@@ -206,6 +236,33 @@ const Receipts = () => {
     }
   }, [predictionAI, predictionData, currency]);
 
+  const loadSpendingAlertAI = useCallback(async () => {
+    if (spendingAlertAI.loading || spendingAlertAI.explanation) return;
+    setSpendingAlertAI((prev) => ({ ...prev, loading: true }));
+
+    try {
+      const { data, error } = await supabase.functions.invoke("spending-alert", {
+        body: {
+          last3DaysTotal: spendingAlertData.last3DaysTotal,
+          averageDaily: spendingAlertData.averageDaily,
+          currency,
+        },
+      });
+
+      if (error) throw error;
+      setSpendingAlertAI({
+        explanation: data.explanation || "",
+        loading: false,
+      });
+    } catch (e) {
+      console.error("Spending alert AI error:", e);
+      setSpendingAlertAI({
+        explanation: `You've spent ${Math.round((spendingAlertData.last3DaysTotal / (spendingAlertData.averageDaily * 3)) * 100)}% more than your usual pace in the last 3 days.`,
+        loading: false,
+      });
+    }
+  }, [spendingAlertAI, spendingAlertData, currency]);
+
   if (loading) {
     return (
       <div className="flex-1 flex items-center justify-center min-h-[50vh]">
@@ -224,9 +281,11 @@ const Receipts = () => {
             insights={insights}
             weeklyData={weeklyData}
             predictionData={predictionData}
+            spendingAlertData={spendingAlertData}
             currency={currency}
             onLoadWeeklyAI={loadWeeklyAI}
             onLoadPredictionAI={loadPredictionAI}
+            onLoadSpendingAlertAI={loadSpendingAlertAI}
           />
         )}
         <FiltersBar

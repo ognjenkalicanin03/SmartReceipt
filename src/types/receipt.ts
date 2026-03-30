@@ -22,7 +22,7 @@ export interface SpendingCategory {
   color: string;
 }
 
-export type InsightType = "distribution" | "trend" | "top-item" | "impulse" | "category-high" | "prediction";
+export type InsightType = "distribution" | "top-item" | "category-high" | "prediction" | "spending-alert";
 
 export interface Insight {
   icon: string;

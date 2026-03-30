@@ -14,7 +14,7 @@ export const allReceipts: Receipt[] = [
 export const timeFilters = ["Week", "Month", "All time"] as const;
 export const categoryFilters = ["All", "Food", "Drinks", "Snacks", "Hygiene"] as const;
 
-const IMPULSE_CATEGORIES = ["Snacks", "Drinks"];
+
 
 export function getFilteredReceipts(time: string, category: string): Receipt[] {
   let filtered = allReceipts;
@@ -79,22 +79,7 @@ export function getInsights(receipts: Receipt[]): Insight[] {
     });
   }
 
-  // 2 — Impulse / unnecessary spending detection
-  const impulseTotal = spending
-    .filter((s) => IMPULSE_CATEGORIES.includes(s.name))
-    .reduce((sum, s) => sum + s.value, 0);
-  const impulsePct = total > 0 ? Math.round((impulseTotal / total) * 100) : 0;
-  if (impulsePct > 0) {
-    insights.push({
-      icon: "⚠️",
-      text: `Impulse purchases (snacks & drinks) account for ${impulsePct}% — ${impulseTotal.toFixed(0)} total`,
-      highlightedText: { before: "Impulse purchases account for", value: `${impulsePct}%`, after: `— ${impulseTotal.toFixed(0)} total` },
-      trend: impulsePct > 25 ? "up" : "neutral",
-      type: "impulse",
-    });
-  }
-
-  // 3 — Most frequently purchased item
+  // 2 — Most frequently purchased item
   const itemCounts: Record<string, number> = {};
   receipts.forEach((r) => r.items.forEach((i) => { itemCounts[i.name] = (itemCounts[i.name] || 0) + 1; }));
   const topItem = Object.entries(itemCounts).sort((a, b) => b[1] - a[1])[0];
@@ -108,28 +93,7 @@ export function getInsights(receipts: Receipt[]): Insight[] {
     });
   }
 
-  // 4 — Trend (week-over-week from actual data)
-  if (receipts.length >= 2) {
-    const now = new Date();
-    const weekAgo = new Date(now.getTime() - 7 * 86400000);
-    const twoWeeksAgo = new Date(now.getTime() - 14 * 86400000);
-    const thisWeek = receipts.filter((r) => { const d = getReceiptDate(r); return d !== null && d >= weekAgo && d <= now; }).reduce((s, r) => s + r.total, 0);
-    const lastWeek = receipts.filter((r) => { const d = getReceiptDate(r); return d !== null && d >= twoWeeksAgo && d < weekAgo; }).reduce((s, r) => s + r.total, 0);
-    if (lastWeek > 0) {
-      const change = Math.round(((thisWeek - lastWeek) / lastWeek) * 100);
-      const direction = change >= 0 ? "up" : "down";
-      const absChange = Math.abs(change);
-      insights.push({
-        icon: direction === "up" ? "📈" : "📉",
-        text: `Spending ${direction === "up" ? "increased" : "decreased"} by ${absChange}% compared to last week`,
-        highlightedText: { before: `Spending ${direction === "up" ? "increased" : "decreased"} by`, value: `${absChange}%`, after: "vs. last week" },
-        trend: direction,
-        type: "trend",
-      });
-    }
-  }
-
-  // 5 — Highest single receipt
+  // 3 — Highest single receipt
   const maxReceipt = receipts.reduce((max, r) => (r.total > max.total ? r : max), receipts[0]);
   insights.push({
     icon: "💳",
