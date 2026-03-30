@@ -31,15 +31,20 @@ const Receipts = () => {
   });
 
   const filtered = useMemo(() => {
+    const now = new Date();
     let result = receipts;
     if (activeTime === "Week") {
-      const weekAgo = new Date();
-      weekAgo.setDate(weekAgo.getDate() - 7);
-      result = result.filter((r) => new Date(r.created_at || "") >= weekAgo);
+      const cutoff = new Date(now.getTime() - 7 * 86400000);
+      result = result.filter((r) => {
+        const d = getReceiptDate(r);
+        return d !== null && d >= cutoff && d <= now;
+      });
     } else if (activeTime === "Month") {
-      const monthAgo = new Date();
-      monthAgo.setMonth(monthAgo.getMonth() - 1);
-      result = result.filter((r) => new Date(r.created_at || "") >= monthAgo);
+      const cutoff = new Date(now.getTime() - 30 * 86400000);
+      result = result.filter((r) => {
+        const d = getReceiptDate(r);
+        return d !== null && d >= cutoff && d <= now;
+      });
     }
     if (activeCategory !== "All") {
       result = result.filter((r) => r.categories.includes(activeCategory));
