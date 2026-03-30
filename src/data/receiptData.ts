@@ -132,8 +132,8 @@ export function getInsights(receipts: Receipt[]): Insight[] {
   const maxReceipt = receipts.reduce((max, r) => (r.total > max.total ? r : max), receipts[0]);
   insights.push({
     icon: "💳",
-    text: `Biggest receipt: ${maxReceipt.total.toFixed(2)} RSD at ${maxReceipt.store}`,
-    highlightedText: { before: "Biggest receipt:", value: `${maxReceipt.total.toFixed(2)} RSD`, after: `at ${maxReceipt.store}` },
+    text: `Biggest receipt: ${maxReceipt.total.toFixed(2)} at ${maxReceipt.store}`,
+    highlightedText: { before: "Biggest receipt:", value: `${maxReceipt.total.toFixed(2)}`, after: `at ${maxReceipt.store}` },
     trend: "neutral",
     type: "category-high",
   });
