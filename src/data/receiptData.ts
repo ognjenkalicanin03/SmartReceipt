@@ -36,10 +36,20 @@ export function getSpendingData(receipts: Receipt[]): SpendingCategory[] {
     Health: "hsl(0, 65%, 60%)",
     Clothing: "hsl(280, 45%, 60%)",
     Transport: "hsl(50, 70%, 50%)",
+    Beauty: "hsl(310, 55%, 60%)",
   };
+  // Sum at item level for accurate per-category totals
   receipts.forEach((r) => {
-    const share = r.total / r.categories.length;
-    r.categories.forEach((c) => { catMap[c] = (catMap[c] || 0) + share; });
+    if (r.items && r.items.length > 0) {
+      r.items.forEach((item) => {
+        const cat = item.category || "Other";
+        catMap[cat] = (catMap[cat] || 0) + item.price;
+      });
+    } else {
+      // Fallback for receipts without items
+      const cat = r.categories[0] || "Other";
+      catMap[cat] = (catMap[cat] || 0) + r.total;
+    }
   });
   return Object.entries(catMap).map(([name, value]) => ({
     name,
@@ -76,8 +86,8 @@ export function getInsights(receipts: Receipt[]): Insight[] {
   if (impulsePct > 0) {
     insights.push({
       icon: "⚠️",
-      text: `Impulse purchases (snacks & drinks) account for ${impulsePct}% — ${impulseTotal.toFixed(0)} RSD total`,
-      highlightedText: { before: "Impulse purchases account for", value: `${impulsePct}%`, after: `— ${impulseTotal.toFixed(0)} RSD total` },
+      text: `Impulse purchases (snacks & drinks) account for ${impulsePct}% — ${impulseTotal.toFixed(0)} total`,
+      highlightedText: { before: "Impulse purchases account for", value: `${impulsePct}%`, after: `— ${impulseTotal.toFixed(0)} total` },
       trend: impulsePct > 25 ? "up" : "neutral",
       type: "impulse",
     });
@@ -97,28 +107,33 @@ export function getInsights(receipts: Receipt[]): Insight[] {
     });
   }
 
-  // 4 — Simulated trend (week-over-week change)
-  const weekTotal = allReceipts.slice(0, 4).reduce((s, r) => s + r.total, 0);
-  const prevWeekTotal = allReceipts.slice(4).reduce((s, r) => s + r.total, 0);
-  if (prevWeekTotal > 0) {
-    const change = Math.round(((weekTotal - prevWeekTotal) / prevWeekTotal) * 100);
-    const direction = change >= 0 ? "up" : "down";
-    const absChange = Math.abs(change);
-    insights.push({
-      icon: direction === "up" ? "📈" : "📉",
-      text: `Spending ${direction === "up" ? "increased" : "decreased"} by ${absChange}% compared to last period`,
-      highlightedText: { before: `Spending ${direction === "up" ? "increased" : "decreased"} by`, value: `${absChange}%`, after: "vs. last period" },
-      trend: direction,
-      type: "trend",
-    });
+  // 4 — Trend (week-over-week from actual data)
+  if (receipts.length >= 2) {
+    const now = new Date();
+    const weekAgo = new Date(now); weekAgo.setDate(weekAgo.getDate() - 7);
+    const twoWeeksAgo = new Date(now); twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+    const thisWeek = receipts.filter((r) => new Date(r.created_at || "") >= weekAgo).reduce((s, r) => s + r.total, 0);
+    const lastWeek = receipts.filter((r) => { const d = new Date(r.created_at || ""); return d >= twoWeeksAgo && d < weekAgo; }).reduce((s, r) => s + r.total, 0);
+    if (lastWeek > 0) {
+      const change = Math.round(((thisWeek - lastWeek) / lastWeek) * 100);
+      const direction = change >= 0 ? "up" : "down";
+      const absChange = Math.abs(change);
+      insights.push({
+        icon: direction === "up" ? "📈" : "📉",
+        text: `Spending ${direction === "up" ? "increased" : "decreased"} by ${absChange}% compared to last week`,
+        highlightedText: { before: `Spending ${direction === "up" ? "increased" : "decreased"} by`, value: `${absChange}%`, after: "vs. last week" },
+        trend: direction,
+        type: "trend",
+      });
+    }
   }
 
   // 5 — Highest single receipt
   const maxReceipt = receipts.reduce((max, r) => (r.total > max.total ? r : max), receipts[0]);
   insights.push({
     icon: "💳",
-    text: `Biggest receipt: ${maxReceipt.total.toFixed(2)} RSD at ${maxReceipt.store}`,
-    highlightedText: { before: "Biggest receipt:", value: `${maxReceipt.total.toFixed(2)} RSD`, after: `at ${maxReceipt.store}` },
+    text: `Biggest receipt: ${maxReceipt.total.toFixed(2)} at ${maxReceipt.store}`,
+    highlightedText: { before: "Biggest receipt:", value: `${maxReceipt.total.toFixed(2)}`, after: `at ${maxReceipt.store}` },
     trend: "neutral",
     type: "category-high",
   });
