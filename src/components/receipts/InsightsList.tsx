@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { TrendingUp, TrendingDown, AlertTriangle, Trophy, CreditCard, BarChart3, ArrowUpRight, Calendar, Loader2 } from "lucide-react";
+import { TrendingUp, TrendingDown, AlertTriangle, Trophy, CreditCard, BarChart3, ArrowUpRight, Calendar, Loader2, Target } from "lucide-react";
 import { Insight, InsightType, Receipt, SpendingCategory } from "@/types/receipt";
 import { cn } from "@/lib/utils";
 import { formatAmount } from "@/lib/currency";
@@ -16,11 +16,22 @@ interface WeeklyData {
   loading: boolean;
 }
 
+interface PredictionData {
+  predictedTotal: number;
+  averageDaily: number;
+  currentMonthTotal: number;
+  daysLeft: number;
+  explanation: string;
+  loading: boolean;
+}
+
 interface Props {
   insights: Insight[];
   weeklyData?: WeeklyData;
+  predictionData?: PredictionData;
   currency: string;
   onLoadWeeklyAI?: () => void;
+  onLoadPredictionAI?: () => void;
 }
 
 const typeIcon: Record<InsightType, React.ReactNode> = {
