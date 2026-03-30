@@ -121,6 +121,47 @@ const InsightsList = ({ insights, weeklyData, predictionData, currency, onLoadWe
         </button>
       )}
 
+      {/* Spending Prediction Card */}
+      {predictionData && predictionData.predictedTotal > 0 && (
+        <div
+          onClick={() => {
+            if (!predictionData.explanation && !predictionData.loading && onLoadPredictionAI) {
+              onLoadPredictionAI();
+            }
+          }}
+          className={cn(
+            "rounded-2xl p-5 shadow-md border flex items-start gap-3 transition-all duration-300 cursor-pointer",
+            "bg-gradient-to-br from-accent/8 to-primary/5 border-accent/20 hover:shadow-lg hover:border-accent/30"
+          )}
+        >
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-accent/15 text-accent border border-accent/20">
+            <Target className="w-5 h-5" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="px-1.5 py-0.5 rounded bg-accent/15 text-[9px] font-bold text-accent tracking-wide uppercase">Prediction</span>
+            </div>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              You are likely to spend around{" "}
+              <span className="font-bold text-foreground">{formatAmount(predictionData.predictedTotal, currency)}</span>{" "}
+              this month
+            </p>
+            {predictionData.loading ? (
+              <div className="flex items-center gap-1.5 mt-1 text-xs text-muted-foreground/70">
+                <Loader2 className="w-3 h-3 animate-spin" /> Analyzing…
+              </div>
+            ) : predictionData.explanation ? (
+              <p className="text-xs mt-1 text-muted-foreground/80">{predictionData.explanation}</p>
+            ) : (
+              <p className="text-xs mt-1 text-muted-foreground/70">Based on your recent spending patterns</p>
+            )}
+          </div>
+          <div className="shrink-0 mt-1">
+            <TrendingUp className="w-4 h-4 text-accent" />
+          </div>
+        </div>
+      )}
+
       {/* Other insight cards */}
       {insights.map((insight, i) => (
         <div
