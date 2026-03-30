@@ -14,7 +14,7 @@ export const allReceipts: Receipt[] = [
 export const timeFilters = ["Week", "Month", "All time"] as const;
 export const categoryFilters = ["All", "Food", "Drinks", "Snacks", "Hygiene"] as const;
 
-const IMPULSE_CATEGORIES = ["Snacks", "Drinks"];
+
 
 export function getFilteredReceipts(time: string, category: string): Receipt[] {
   let filtered = allReceipts;
