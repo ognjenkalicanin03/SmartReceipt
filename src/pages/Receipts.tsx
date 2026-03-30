@@ -236,6 +236,33 @@ const Receipts = () => {
     }
   }, [predictionAI, predictionData, currency]);
 
+  const loadSpendingAlertAI = useCallback(async () => {
+    if (spendingAlertAI.loading || spendingAlertAI.explanation) return;
+    setSpendingAlertAI((prev) => ({ ...prev, loading: true }));
+
+    try {
+      const { data, error } = await supabase.functions.invoke("spending-alert", {
+        body: {
+          last3DaysTotal: spendingAlertData.last3DaysTotal,
+          averageDaily: spendingAlertData.averageDaily,
+          currency,
+        },
+      });
+
+      if (error) throw error;
+      setSpendingAlertAI({
+        explanation: data.explanation || "",
+        loading: false,
+      });
+    } catch (e) {
+      console.error("Spending alert AI error:", e);
+      setSpendingAlertAI({
+        explanation: `You've spent ${Math.round((spendingAlertData.last3DaysTotal / (spendingAlertData.averageDaily * 3)) * 100)}% more than your usual pace in the last 3 days.`,
+        loading: false,
+      });
+    }
+  }, [spendingAlertAI, spendingAlertData, currency]);
+
   if (loading) {
     return (
       <div className="flex-1 flex items-center justify-center min-h-[50vh]">
