@@ -33,6 +33,10 @@ const Receipts = () => {
     explanation: "",
     loading: false,
   });
+  const [spendingAlertAI, setSpendingAlertAI] = useState<{ explanation: string; loading: boolean }>({
+    explanation: "",
+    loading: false,
+  });
 
   const filtered = useMemo(() => {
     const now = new Date();
