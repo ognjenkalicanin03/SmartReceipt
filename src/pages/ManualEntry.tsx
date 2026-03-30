@@ -1,10 +1,10 @@
 import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
-import { CalendarIcon, Sparkles, Loader2 } from "lucide-react";
+import { CalendarIcon, Sparkles, Loader2, X, ShoppingCart } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { getCountryInfo } from "@/lib/currency";
+import { getCountryInfo, formatAmount } from "@/lib/currency";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,7 +13,11 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
-const CATEGORIES = ["Food", "Drinks", "Snacks", "Hygiene", "Transport", "Beauty", "Other"] as const;
+interface ExpenseItem {
+  title: string;
+  amount: number;
+  category: string;
+}
 
 const ManualEntry = () => {
   const navigate = useNavigate();
@@ -21,20 +25,9 @@ const ManualEntry = () => {
   const currencyInfo = getCountryInfo(profile.country);
   const [quickInput, setQuickInput] = useState("");
   const [parsing, setParsing] = useState(false);
-  const [title, setTitle] = useState("");
-  const [amount, setAmount] = useState("");
-  const [category, setCategory] = useState<string>("Other");
+  const [items, setItems] = useState<ExpenseItem[]>([]);
   const [date, setDate] = useState<Date>(new Date());
   const [submitting, setSubmitting] = useState(false);
-  const [errors, setErrors] = useState<{ title?: string; amount?: string }>({});
-
-  const validate = () => {
-    const e: typeof errors = {};
-    if (!title.trim()) e.title = "Title is required";
-    if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) e.amount = "Enter a valid amount";
-    setErrors(e);
-    return Object.keys(e).length === 0;
-  };
 
   const handleQuickParse = useCallback(async () => {
     const text = quickInput.trim();
@@ -48,16 +41,23 @@ const ManualEntry = () => {
 
       if (error) throw error;
 
-      if (data?.title) setTitle(data.title);
-      if (data?.amount && data.amount > 0) setAmount(String(data.amount));
-      if (data?.category && CATEGORIES.includes(data.category)) {
-        setCategory(data.category);
+      if (data?.title && data?.amount && data.amount > 0) {
+        setItems((prev) => [
+          ...prev,
+          {
+            title: data.title,
+            amount: data.amount,
+            category: data.category || "Other",
+          },
+        ]);
+        setQuickInput("");
+        toast.success(`Added: ${data.title}`);
+      } else {
+        toast.error("Could not parse input. Try e.g. 'taxi 500'");
       }
-      setErrors({});
-      toast.success("Fields auto-filled!");
     } catch (err) {
       console.error("Quick parse failed:", err);
-      toast.error("Could not parse input. Please fill in manually.");
+      toast.error("Could not parse input. Try again.");
     } finally {
       setParsing(false);
     }
@@ -70,16 +70,27 @@ const ManualEntry = () => {
     }
   };
 
+  const removeItem = (index: number) => {
+    setItems((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const total = items.reduce((sum, item) => sum + item.amount, 0);
+
   const handleSubmit = async () => {
-    if (!validate() || !user) return;
+    if (!user || items.length === 0) {
+      toast.error("Add at least one item");
+      return;
+    }
     setSubmitting(true);
+
+    const storeName = items.length === 1 ? items[0].title : `${items.length} items`;
 
     const { data: receipt, error: rErr } = await supabase
       .from("receipts")
       .insert({
         user_id: user.id,
-        store: title.trim(),
-        total: Number(amount),
+        store: storeName,
+        total,
         date: format(date, "MMM dd, yyyy"),
         is_manual: true,
       })
@@ -88,19 +99,21 @@ const ManualEntry = () => {
 
     if (rErr || !receipt) {
       console.error("Error creating manual entry:", rErr);
-      toast.error("Failed to save expense");
+      toast.error("Failed to save receipt");
       setSubmitting(false);
       return;
     }
 
-    await supabase.from("receipt_items").insert({
+    const itemRows = items.map((item) => ({
       receipt_id: receipt.id,
-      name: title.trim(),
-      price: Number(amount),
-      category,
-    });
+      name: item.title,
+      price: item.amount,
+      category: item.category,
+    }));
 
-    toast.success("Expense saved!");
+    await supabase.from("receipt_items").insert(itemRows);
+
+    toast.success("Receipt saved!");
     navigate("/receipts");
   };
 
@@ -140,61 +153,63 @@ const ManualEntry = () => {
             </Button>
           </div>
           <p className="text-xs text-muted-foreground">
-            Type a short description and press Enter to auto-fill the form.
+            Type a short description and press Enter to add an item.
           </p>
         </div>
 
+        {/* Items list */}
+        <div className="space-y-3">
+          <Label className="flex items-center gap-1.5">
+            <ShoppingCart className="h-4 w-4" />
+            Items ({items.length})
+          </Label>
+
+          {items.length === 0 ? (
+            <div className="rounded-lg border border-dashed border-border p-6 text-center">
+              <p className="text-sm text-muted-foreground">
+                No items yet. Use Quick Add above to add expenses.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {items.map((item, i) => (
+                <div
+                  key={i}
+                  className="flex items-center justify-between rounded-lg border border-border bg-card p-3 transition-all animate-in fade-in slide-in-from-top-2"
+                >
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-sm text-foreground truncate">
+                      {item.title}
+                    </p>
+                    <p className="text-xs text-muted-foreground">{item.category}</p>
+                  </div>
+                  <div className="flex items-center gap-2 ml-3">
+                    <span className="text-sm font-semibold text-foreground whitespace-nowrap">
+                      {formatAmount(item.amount, currencyInfo.currency)}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => removeItem(i)}
+                      className="p-1 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+
+              {/* Total */}
+              <div className="flex items-center justify-between pt-2 border-t border-border">
+                <span className="text-sm font-medium text-muted-foreground">Total</span>
+                <span className="text-base font-bold text-foreground">
+                  {formatAmount(total, currencyInfo.currency)}
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
+
         <div className="border-t border-border" />
-
-        {/* Title */}
-        <div className="space-y-2">
-          <Label htmlFor="title">Title</Label>
-          <Input
-            id="title"
-            placeholder="e.g. Taxi, Market, Coffee"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="h-12 text-base"
-          />
-          {errors.title && <p className="text-sm text-destructive">{errors.title}</p>}
-        </div>
-
-        {/* Amount */}
-        <div className="space-y-2">
-          <Label htmlFor="amount">Amount ({currencyInfo.currency})</Label>
-          <Input
-            id="amount"
-            type="number"
-            inputMode="decimal"
-            placeholder="0.00"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            className="h-12 text-base"
-          />
-          {errors.amount && <p className="text-sm text-destructive">{errors.amount}</p>}
-        </div>
-
-        {/* Category */}
-        <div className="space-y-2">
-          <Label>Category</Label>
-          <div className="flex flex-wrap gap-2">
-            {CATEGORIES.map((c) => (
-              <button
-                key={c}
-                type="button"
-                onClick={() => setCategory(c)}
-                className={cn(
-                  "px-4 py-2 rounded-full text-sm font-medium transition-colors border",
-                  category === c
-                    ? "bg-primary text-primary-foreground border-primary"
-                    : "bg-secondary/50 text-secondary-foreground border-border hover:bg-secondary"
-                )}
-              >
-                {c}
-              </button>
-            ))}
-          </div>
-        </div>
 
         {/* Date */}
         <div className="space-y-2">
@@ -222,9 +237,9 @@ const ManualEntry = () => {
           size="lg"
           className="w-full h-12 text-base"
           onClick={handleSubmit}
-          disabled={submitting}
+          disabled={submitting || items.length === 0}
         >
-          {submitting ? "Saving…" : "Save Expense"}
+          {submitting ? "Saving…" : `Save Receipt (${items.length} item${items.length !== 1 ? "s" : ""})`}
         </Button>
       </div>
     </div>
