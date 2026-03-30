@@ -86,8 +86,8 @@ export function getInsights(receipts: Receipt[]): Insight[] {
   if (impulsePct > 0) {
     insights.push({
       icon: "⚠️",
-      text: `Impulse purchases (snacks & drinks) account for ${impulsePct}% — ${impulseTotal.toFixed(0)} RSD total`,
-      highlightedText: { before: "Impulse purchases account for", value: `${impulsePct}%`, after: `— ${impulseTotal.toFixed(0)} RSD total` },
+      text: `Impulse purchases (snacks & drinks) account for ${impulsePct}% — ${impulseTotal.toFixed(0)} total`,
+      highlightedText: { before: "Impulse purchases account for", value: `${impulsePct}%`, after: `— ${impulseTotal.toFixed(0)} total` },
       trend: impulsePct > 25 ? "up" : "neutral",
       type: "impulse",
     });
