@@ -29,6 +29,7 @@ const typeIcon: Record<InsightType, React.ReactNode> = {
   "top-item": <Trophy className="w-4 h-4" />,
   impulse: <AlertTriangle className="w-4 h-4" />,
   "category-high": <CreditCard className="w-4 h-4" />,
+  prediction: <TrendingUp className="w-4 h-4" />,
 };
 
 const typeAccent: Record<InsightType, string> = {
@@ -37,6 +38,7 @@ const typeAccent: Record<InsightType, string> = {
   "top-item": "bg-primary/10 text-primary border-primary/20",
   impulse: "bg-destructive/10 text-destructive border-destructive/20",
   "category-high": "bg-muted text-muted-foreground border-border/50",
+  prediction: "bg-primary/10 text-primary border-primary/20",
 };
 
 const InsightsList = ({ insights, weeklyData, currency, onLoadWeeklyAI }: Props) => {
