@@ -223,8 +223,10 @@ const Receipts = () => {
           <InsightsList
             insights={insights}
             weeklyData={weeklyData}
+            predictionData={predictionData}
             currency={currency}
             onLoadWeeklyAI={loadWeeklyAI}
+            onLoadPredictionAI={loadPredictionAI}
           />
         )}
         <FiltersBar
