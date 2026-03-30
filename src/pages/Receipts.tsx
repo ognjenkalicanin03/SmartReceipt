@@ -101,6 +101,41 @@ const Receipts = () => {
     };
   }, [receipts, weeklyAI]);
 
+  // Prediction data calculation
+  const predictionData = useMemo(() => {
+    const now = new Date();
+    const weekAgo = new Date(now.getTime() - 7 * 86400000);
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    const dayOfMonth = now.getDate();
+    const daysLeft = daysInMonth - dayOfMonth;
+
+    const last7DaysReceipts = receipts.filter((r) => {
+      const d = getReceiptDate(r);
+      return d !== null && d >= weekAgo && d <= now;
+    });
+
+    const last7DaysTotal = last7DaysReceipts.reduce((s, r) => s + r.total, 0);
+    const averageDaily = last7DaysTotal / 7;
+
+    const currentMonthReceipts = receipts.filter((r) => {
+      const d = getReceiptDate(r);
+      return d !== null && d >= monthStart && d <= now;
+    });
+    const currentMonthTotal = currentMonthReceipts.reduce((s, r) => s + r.total, 0);
+
+    const predictedTotal = Math.round(averageDaily * daysInMonth);
+
+    return {
+      predictedTotal,
+      averageDaily: Math.round(averageDaily),
+      currentMonthTotal: Math.round(currentMonthTotal),
+      daysLeft,
+      explanation: predictionAI.explanation,
+      loading: predictionAI.loading,
+    };
+  }, [receipts, predictionAI]);
+
   const loadWeeklyAI = useCallback(async () => {
     if (weeklyAI.loading || weeklyAI.explanation) return;
     setWeeklyAI((prev) => ({ ...prev, loading: true }));
