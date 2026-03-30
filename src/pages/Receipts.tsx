@@ -29,6 +29,10 @@ const Receipts = () => {
     suggestion: "",
     loading: false,
   });
+  const [predictionAI, setPredictionAI] = useState<{ explanation: string; loading: boolean }>({
+    explanation: "",
+    loading: false,
+  });
 
   const filtered = useMemo(() => {
     const now = new Date();
